@@ -1,0 +1,238 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+/*
+   Primeclue: Machine Learning and Data Mining
+   Copyright (C) 2020 Łukasz Wojtów
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+use crate::data::data_set::DataView;
+use crate::data::outcome::{sort_guesses, Class};
+use crate::data::Size;
+use crate::exec::node::Weighted;
+use crate::exec::score::{calc_score, threshold, Objective, Score};
+use crate::rand::GET_RNG;
+use crate::serialization::{Deserializable, Serializable, Serializator};
+use rand::Rng;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Tree {
+    node: Weighted,
+    data_size: Size,
+    node_count: usize,
+}
+
+impl Serializable for Tree {
+    fn serialize(&self, s: &mut Serializator) {
+        s.add_items(&[&self.node, &self.data_size, &self.node_count]);
+    }
+}
+
+impl Deserializable for Tree {
+    fn deserialize(s: &mut Serializator) -> Result<Tree, String> {
+        let node = Weighted::deserialize(s)?;
+        let data_size = Size::deserialize(s)?;
+        let node_count = usize::deserialize(s)?;
+        Ok(Tree { node, data_size, node_count })
+    }
+}
+
+impl Tree {
+    pub fn new(
+        size: &Size,
+        max_branch_length: usize,
+        forbidden_cols: &[usize],
+        branch_prob: f64,
+        data_prob: f64,
+    ) -> Tree {
+        let node =
+            Weighted::new(0, size, branch_prob, max_branch_length, forbidden_cols, data_prob);
+        let node_count = node.node_count();
+        Tree { node, data_size: *size, node_count }
+    }
+
+    pub fn change_weights(&mut self) {
+        let mut rng = GET_RNG();
+        let count = rng.gen_range(0, (self.node_count() as f32).sqrt() as i32);
+        for _ in 0..count {
+            let node = self.select_random_node();
+            node.change_weight(rng.gen_range(-3.0, 3.0));
+        }
+    }
+
+    pub fn mutate(&mut self, forbidden_cols: &[usize]) {
+        let data_size = self.data_size;
+        let node = self.select_random_node();
+        node.mutate(&data_size, forbidden_cols);
+    }
+
+    pub fn select_node(&mut self, node_id: usize) -> &mut Weighted {
+        self.node.select_node(node_id, self.node_count)
+    }
+
+    pub fn select_random_node(&mut self) -> &mut Weighted {
+        let node_id = GET_RNG().gen_range(0, self.node_count());
+        self.select_node(node_id)
+    }
+
+    #[must_use]
+    pub fn serializator(&self) -> Serializator {
+        let mut s = Serializator::new();
+        s.add(self);
+        s
+    }
+
+    #[must_use]
+    pub fn data_size(&self) -> &Size {
+        &self.data_size
+    }
+
+    #[must_use]
+    pub fn node_count(&self) -> usize {
+        self.node_count
+    }
+
+    #[must_use]
+    pub fn execute_for_score(
+        &self,
+        data: &DataView,
+        class: Class,
+        objective: Objective,
+    ) -> Option<Score> {
+        if data.cells().get(0, 0).len() < 2 {
+            None
+        } else {
+            let guesses = self.execute(data);
+            let mut change = false;
+            for v in &guesses {
+                if !v.is_finite() {
+                    return None;
+                }
+                change = change || (*v - guesses[0]).abs() > 0.001;
+            }
+            if !change {
+                return None;
+            }
+            let outcomes = sort_guesses(guesses, data.outcomes());
+            let threshold = threshold(&outcomes, class);
+            Some(calc_score(&outcomes, threshold, class, objective))
+        }
+    }
+
+    pub(crate) fn execute(&self, data: &DataView) -> Vec<f32> {
+        self.node.execute(data.cells())
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod test {
+    use crate::data::data_set::DataSet;
+    use crate::data::outcome::Class;
+    use crate::data::{Input, Outcome, Point, Size};
+    use crate::exec::functions::{MATH_CONSTANTS, ONE_ARG_FUNCTIONS, TWO_ARG_FUNCTIONS};
+    use crate::exec::node::{Node, Weighted};
+    use crate::exec::score::Objective::Cost;
+    use crate::exec::tree::Tree;
+    use crate::rand::GET_RNG;
+    use crate::serialization::serializator::test::test_serialization;
+    use rand::Rng;
+    use std::collections::HashMap;
+
+    #[test]
+    fn serialize_tree() {
+        let size = Size::new(10, 20);
+        for _ in 0..10_000 {
+            let max_branch_length = GET_RNG().gen_range(2, 15);
+            let tree = Tree::new(&size, max_branch_length, &Vec::new(), 0.5, 0.5);
+            test_serialization(tree);
+        }
+    }
+
+    fn sample_tree() -> Tree {
+        let n1 = Node::DataValue(0, 0);
+        let w1 = Weighted::from(n1);
+        let n2 = Node::DataValue(0, 0);
+        let w2 = Weighted::from(n2);
+        let n3 = Node::MathConstant(&MATH_CONSTANTS[0]);
+        let w3 = Weighted::from(n3);
+        let n4 = Node::SingleArgFunction(&ONE_ARG_FUNCTIONS[0], w1);
+        let w4 = Weighted::from(n4);
+        let n5 = Node::DoubleArgFunction(&TWO_ARG_FUNCTIONS[2], w2, w3);
+        let w5 = Weighted::from(n5);
+        let n6 = Node::DoubleArgFunction(&TWO_ARG_FUNCTIONS[3], w4, w5);
+        let node_count = n6.node_count();
+
+        Tree { node: Weighted::from(n6), data_size: Size::new(1, 1), node_count }
+    }
+
+    #[test]
+    fn count_nodes() {
+        let tree = sample_tree();
+        assert_eq!(tree.node_count(), 6);
+    }
+
+    #[test]
+    fn calculate_cost_score() {
+        // a tree that always returns data(0,0)
+        let tree = Tree {
+            node: Weighted::from(Node::DataValue(0, 0)),
+            data_size: Size::new(1, 1),
+            node_count: 1,
+        };
+        let mut classes = HashMap::new();
+        classes.insert(Class::from(true), "true".to_string());
+        classes.insert(Class::from(false), "false".to_string());
+        let mut set = DataSet::new(classes);
+        // with 2x false threshold will be 3rd guess (so 2.0 in this case)
+        set.add_data_point(Point::new(
+            Input::from_vector(vec![vec![0.0]]).unwrap(),
+            Outcome::new(Class::from(false), 1.0, -2.0),
+        ))
+        .unwrap(); // guess correct +1
+        set.add_data_point(Point::new(
+            Input::from_vector(vec![vec![1.0]]).unwrap(),
+            Outcome::new(Class::from(true), 4.0, -8.0),
+        ))
+        .unwrap(); // guess incorrect -8
+        set.add_data_point(Point::new(
+            Input::from_vector(vec![vec![2.0]]).unwrap(),
+            Outcome::new(Class::from(false), 16.0, -32.0),
+        ))
+        .unwrap(); // guess incorrect -32
+        set.add_data_point(Point::new(
+            Input::from_vector(vec![vec![3.0]]).unwrap(),
+            Outcome::new(Class::from(true), 64.0, -128.0),
+        ))
+        .unwrap(); // guess correct +64
+        let split = set.into_view();
+        let score = tree.execute_for_score(&split, Class::from(true), Cost).unwrap();
+        assert_eq!(score.threshold().value(), 2.0);
+        assert_eq!(score.value(), 25.0); // sum of +1 -8 -32 +64
+    }
+
+    pub(crate) fn create_short_tree() -> Tree {
+        let n1 = Node::DataValue(0, 0);
+        let w1 = Weighted::from(n1);
+        let node_count = w1.node_count();
+        Tree { node: w1, data_size: Size::new(1, 1), node_count }
+    }
+
+    pub(crate) fn create_long_tree() -> Tree {
+        let n1 = Node::DataValue(0, 0);
+        let w1 = Weighted::from(n1);
+        let w = Weighted::from(Node::SingleArgFunction(&ONE_ARG_FUNCTIONS[0], w1));
+        let node_count = w.node_count();
+        Tree { node: w, data_size: Size::new(1, 1), node_count }
+    }
+}

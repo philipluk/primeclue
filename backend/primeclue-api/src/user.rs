@@ -1,0 +1,93 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+/*
+   Primeclue: Machine Learning and Data Mining
+   Copyright (C) 2020 Łukasz Wojtów
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+use primeclue::error::PrimeclueErr;
+use std::fs;
+use std::fs::{DirEntry, ReadDir};
+use std::path::PathBuf;
+
+pub(crate) const DELETE_IN_PROGRESS: &str = "delete_in_progress";
+pub(crate) const DATA_DIR: &str = "data";
+pub(crate) const CLASSIFIERS_DIR: &str = "classifiers";
+
+#[derive(Clone)]
+pub(crate) struct Settings {
+    home: PathBuf,
+}
+
+impl Settings {
+    pub(crate) fn new() -> Result<Settings, String> {
+        let home = dirs::home_dir()
+            .ok_or_else(|| "Unable to get user's home directory".to_string())?
+            .join("Primeclue");
+        create_dir(&home)?;
+        let data = home.join(DATA_DIR);
+        create_dir(&data)?;
+        let projects = home.join(CLASSIFIERS_DIR);
+        create_dir(&projects)?;
+        Ok(Settings { home })
+    }
+
+    pub(crate) fn home_dir(&self) -> &PathBuf {
+        &self.home
+    }
+
+    pub(crate) fn data_dir(&self) -> PathBuf {
+        self.home.clone().join(DATA_DIR)
+    }
+
+    pub(crate) fn classifier_dir(&self) -> PathBuf {
+        self.home.clone().join(CLASSIFIERS_DIR)
+    }
+}
+
+fn create_dir(dir: &PathBuf) -> Result<(), String> {
+    if !dir.exists() {
+        fs::create_dir_all(&dir)
+            .map_err(|e| format!("Unable to create directory {:?}: {}", dir, e))
+    } else if dir.is_dir() {
+        Ok(())
+    } else {
+        Err(format!("{:?} is not a directory", dir))
+    }
+}
+
+pub(crate) fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
+    let mut projects = vec![];
+    for file in list {
+        let file = file?;
+        let name = file.file_name();
+        if empty(&file)? {
+            continue;
+        }
+        let utf_name = name
+            .to_str()
+            .ok_or_else(|| PrimeclueErr::from(format!("Unable to read file: {:?}", file)))?
+            .to_owned();
+        if !utf_name.contains(DELETE_IN_PROGRESS) {
+            projects.push(utf_name);
+        }
+    }
+    Ok(projects)
+}
+
+fn empty(name: &DirEntry) -> Result<bool, PrimeclueErr> {
+    let mut list = fs::read_dir(name.path())?;
+    Ok(list.next().is_none())
+}
