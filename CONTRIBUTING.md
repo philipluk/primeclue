@@ -9,7 +9,7 @@ Primeclue's branches:
 
 To contribute, please do:
 
-1. Fork the repo and write your changes against ```beta``` branch. Format your code with ```backend/scripts/format.sh```.
+1. Fork the repo and write your changes against ```dev``` branch. Format your code with ```backend/scripts/format.sh```.
 2. Run ```backend/scripts/build.sh```. Ensure there are no warnings and that all tests pass.
 3. When finished, squash your work to a single commit. Add a description if needed.
 4. Sync upstream changes to your repo. Don't try to rewrite branch's history.
