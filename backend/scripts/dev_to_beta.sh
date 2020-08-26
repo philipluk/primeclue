@@ -4,3 +4,4 @@ set -e
 git checkout beta
 git merge dev --ff-only
 git push
+git checkout dev
