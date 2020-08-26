@@ -459,7 +459,7 @@ pub static TWO_ARG_FUNCTIONS: [DoubleArgFunction; 17] = [
 
 #[cfg(test)]
 mod test {
-    use crate::exec::functions::equal;
+    use crate::exec::functions::{equal, relu};
 
     #[test]
     fn test_equal() {
@@ -482,6 +482,12 @@ mod test {
         let v1 = 1020.0;
         let v2 = 1000.0;
         assert_eq!(0.0, equal(v1, v2));
+    }
 
+    #[test]
+    fn test_relu() {
+        assert_eq!(relu(1.0), 1.0);
+        assert_eq!(relu(-15.0), 0.0);
+        assert_eq!(relu(15.0), 15.0);
     }
 }
