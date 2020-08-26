@@ -299,8 +299,9 @@ fn lower(v1: f32, v2: f32) -> f32 {
 fn equal_array(v1: Vec<f32>, v2: &[f32]) -> Vec<f32> {
     two_arrays_fun(equal, v1, v2)
 }
+
 fn equal(v1: f32, v2: f32) -> f32 {
-    if (1.0 - v1 / v2).abs() < 0.01 * v1 {
+    if (1.0 - v1 / v2).abs() < 0.01 {
         1.0
     } else {
         0.0
@@ -454,3 +455,33 @@ pub static TWO_ARG_FUNCTIONS: [DoubleArgFunction; 17] = [
     DoubleArgFunction { name: "xor", fun: xor_array },
     DoubleArgFunction { name: "round_equal_array", fun: round_equal_array },
 ];
+
+
+#[cfg(test)]
+mod test {
+    use crate::exec::functions::equal;
+
+    #[test]
+    fn test_equal() {
+        let v1 = 1.0;
+        let v2 = v1;
+        assert_eq!(1.0, equal(v1, v2));
+
+        let v1 = -1.0;
+        let v2 = 1.0;
+        assert_eq!(0.0, equal(v1, v2));
+
+        let v1 = 1010.0;
+        let v2 = 1000.0;
+        assert_eq!(1.0, equal(v1, v2));
+
+        let v1 = 100.0;
+        let v2 = 1000.0;
+        assert_eq!(0.0, equal(v1, v2));
+
+        let v1 = 1020.0;
+        let v2 = 1000.0;
+        assert_eq!(0.0, equal(v1, v2));
+
+    }
+}
