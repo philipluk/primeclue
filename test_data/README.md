@@ -83,11 +83,11 @@ of a single stock and WIG (Polish broad market index) at the beginning of a year
 Williams R indicator and past price changes. The objective was to predict whether the stock's price will at least double during the year.     
           
 <h3>Fizz buzz</h3>
-Variation of [popular game](https://en.wikipedia.org/wiki/Fizz_buzz). Objective was to predict one of four classes:<br>
-`Fizz` for numbers % 3 == 0<br>
-`Buzz` for numbers % 5 == 0<br>
-`FizzBuzz` for numbers % 15 == 0<br>
-`Value` for every other number.<br>
+Variation of <a href="https://en.wikipedia.org/wiki/Fizz_buzz">popular game</a>. Objective was to predict one of four classes:<br>
+<b>Fizz</b> for numbers % 3 == 0<br>
+<b>Buzz</b> for numbers % 5 == 0<br>
+<b>FizzBuzz</b> for numbers % 15 == 0<br>
+<b>Value</b> for every other number.<br>
 To make things more complicated, data was not shuffled. In other words, lower numbers went to training data and higher numbers to 
 test data. This way Primeclue had to learn the rules instead of approximating. 
 
@@ -103,6 +103,6 @@ As there is nothing to predict it is a good way to check for data leak / curve f
 can go to around 65-70% correctness. Obviously, result on test data stay around 50%.   
 
 <h2>Files description</h2>
-Folder _original_: contains original files<br>
-Folder _processed_: contains processed files before import; last column is target<br>
-Folder _primeclue_data_: contains files in Primeclue's format; this can be moved to ~/Primeclue/data<br>                 
+Folder <i>original</i>: contains original files<br>
+Folder <i>processed</i>: contains processed files before import; last column is target<br>
+Folder <i>primeclue_data</i>: contains files in Primeclue's format; this can be moved to ~/Primeclue/data<br>                 
