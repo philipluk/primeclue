@@ -1,4 +1,4 @@
-# web
+# Primeclue frontend web app
 
 ## Project setup
 ```

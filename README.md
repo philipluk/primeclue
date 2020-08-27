@@ -41,7 +41,7 @@ Also, trees usually are a lot bigger than this example. This enables Primeclue t
 predicting companies bankruptcies and banknotes verification.
 
 <h3>Can it actually learn anything?</h3>
-Yes. Please refer to [test data](test_data/README.md) to see results.
+Yes. Please refer to <a href="test_data/README.md">test data</a> to see results.
 
 <h3>How to run it?</h3>
 
@@ -63,14 +63,14 @@ docker run -it -p 8080:80 -p 8180:8180 -v /some/directory/here:/root/Primeclue l
 
  
 <h4>Run from this repo</h4>
-You need ```cargo``` and ```npm``` on your system. 
+You need <b>cargo</b> and <b>npm</b> on your system. 
 Run backend with command:
 
 ```shell script
 cargo run --release
 ```
 
-By default, it binds to ```localhost:8180```. Port is set in [primeclue-api/src/rest.rs](backend/primeclue-api/src/rest.rs) if you need to change it.<br>
+By default, it binds to `localhost:8180`. Port is set in <a href="backend/primeclue-api/src/rest.rs">primeclue-api/src/rest.rs</a> if you need to change it.<br>
 To serve frontend to your browser, do:
 
 ```shell script
@@ -81,15 +81,16 @@ npm run serve
 Then go to [http://localhost:8080/](http://localhost:8080/)
 
 <h3>Help</h3>
-I recorded a couple of short [videos](VIDEOS.md) explaining basic steps. Also, you can ask for help on our [newsgroup](https://groups.google.com/g/primeclue).
+I recorded a couple of short <a href="VIDEOS.md">videos</a> explaining basic steps. Also, you can ask for help on our 
+<a href="https://groups.google.com/g/primeclue">newsgroup</a>
 
 <h3>Contributing</h3>
 I'm neither Rust nor AI expert so probably a lot of things can be improved. 
-Checkout [contribution rules](CONTRIBUTING.md) for more info.
+Checkout <a href="CONTRIBUTING.md">contribution rules</a> for more info.
 I will gladly accept features, fixes and even one-liners to make the code more idiomatic. If you're looking for some ideas, take a look at
-[next features](NEXT_FEATURES.md) to see what's in plans.
+<a href="NEXT_FEATURES.md">next features</a> to see what's in plans.
 
 <h3>Contact author</h3>
-You can contact me at [lukasz.wojtow@gmail.com](mailto:lukasz.wojtow@gmail.com)
+You can contact me at lukasz.wojtow@gmail.com
 <h3>License</h3>
 Affero GPL 3.0 or later.
