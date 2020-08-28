@@ -1,6 +1,6 @@
 <h1>Contributing to Primeclue</h1>
 Everybody is welcome to contribute to Primeclue. Choose anything you want to work on, 
-but before you do, drop me a line at [lukasz.wojtow@gmail.com](mailto:lukasz.wojtow@gmail.com).
+but before you do, drop me a line at lukasz.wojtow@gmail.com
 
 Primeclue's branches:
 1. ```dev``` - For initial checks like tests and warnings.
