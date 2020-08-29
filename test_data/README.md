@@ -17,15 +17,15 @@ Data name | Median AUC
 --- | ---
 Adult income | 0.9 
 Banknote verification | 1.0
-Breast cancer diagnosis | 0.77 
-Companies 1 year bankruptcy | 0.91
+Breast cancer diagnosis | 0.76 
+Companies 1 year bankruptcy | 0.92
 Credit card default | 0.77
-Crime rate | 0.88
+Crime rate | 0.89
 Heart disease | 0.8                                    
-Hepatitis deaths | 0.76                   
+Hepatitis deaths | 0.79                   
 Online news popularity | 1.0     
-Stocks | 0.72 
-Fizz Buzz | 0.96    
+Stocks | 0.71 
+Fizz Buzz | 0.98    
 Breast cancer with mistake: | 1.0
 Random | 0.50
 

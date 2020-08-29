@@ -6,13 +6,14 @@ run() {
 }
 
 set -e
+run stocks
 run breast_cancer
 run companies
 run credit_card_default
 run crime
 run heart
 run hepatitis
-run stocks
 run adult
 run banknote
 run online_news
+run fizz_buzz

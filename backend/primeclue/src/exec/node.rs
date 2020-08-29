@@ -47,11 +47,11 @@ impl Deserializable for Weight {
 
 impl Weight {
     pub fn generate() -> Self {
-        Weight { 0: GET_RNG().gen_range(-1024.0, 1024.0) }
+        Weight { 0: GET_RNG().gen_range(-1.618, 1.618) }
     }
 
     pub fn mutate(&mut self) {
-        let new = self.0 * GET_RNG().gen_range(-1.618, 1.618);
+        let new = self.0 * GET_RNG().gen_range(0.0, 1.618);
         if !new.is_nan() {
             self.0 = new;
         }
