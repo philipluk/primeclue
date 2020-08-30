@@ -21,7 +21,7 @@ use crate::data::data_set::DataView;
 use crate::data::outcome::{sort_guesses, Class};
 use crate::data::Size;
 use crate::exec::node::Weighted;
-use crate::exec::score::{calc_score, threshold, Objective, Score};
+use crate::exec::score::{calc_score, Objective, Score};
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 use rand::Rng;
@@ -125,7 +125,7 @@ impl Tree {
                 return None;
             }
             let outcomes = sort_guesses(guesses, data.outcomes());
-            let threshold = threshold(&outcomes, class);
+            let threshold = objective.threshold(&outcomes, class);
             Some(calc_score(&outcomes, threshold, class, objective))
         }
     }
@@ -137,17 +137,13 @@ impl Tree {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::data::data_set::DataSet;
-    use crate::data::outcome::Class;
-    use crate::data::{Input, Outcome, Point, Size};
+    use crate::data::Size;
     use crate::exec::functions::{MATH_CONSTANTS, ONE_ARG_FUNCTIONS, TWO_ARG_FUNCTIONS};
     use crate::exec::node::{Node, Weighted};
-    use crate::exec::score::Objective::Cost;
     use crate::exec::tree::Tree;
     use crate::rand::GET_RNG;
     use crate::serialization::serializator::test::test_serialization;
     use rand::Rng;
-    use std::collections::HashMap;
 
     #[test]
     fn serialize_tree() {
@@ -180,45 +176,6 @@ pub(crate) mod test {
     fn count_nodes() {
         let tree = sample_tree();
         assert_eq!(tree.node_count(), 6);
-    }
-
-    #[test]
-    fn calculate_cost_score() {
-        // a tree that always returns data(0,0)
-        let tree = Tree {
-            node: Weighted::from(Node::DataValue(0, 0)),
-            data_size: Size::new(1, 1),
-            node_count: 1,
-        };
-        let mut classes = HashMap::new();
-        classes.insert(Class::from(true), "true".to_string());
-        classes.insert(Class::from(false), "false".to_string());
-        let mut set = DataSet::new(classes);
-        // with 2x false threshold will be 3rd guess (so 2.0 in this case)
-        set.add_data_point(Point::new(
-            Input::from_vector(vec![vec![0.0]]).unwrap(),
-            Outcome::new(Class::from(false), 1.0, -2.0),
-        ))
-        .unwrap(); // guess correct +1
-        set.add_data_point(Point::new(
-            Input::from_vector(vec![vec![1.0]]).unwrap(),
-            Outcome::new(Class::from(true), 4.0, -8.0),
-        ))
-        .unwrap(); // guess incorrect -8
-        set.add_data_point(Point::new(
-            Input::from_vector(vec![vec![2.0]]).unwrap(),
-            Outcome::new(Class::from(false), 16.0, -32.0),
-        ))
-        .unwrap(); // guess incorrect -32
-        set.add_data_point(Point::new(
-            Input::from_vector(vec![vec![3.0]]).unwrap(),
-            Outcome::new(Class::from(true), 64.0, -128.0),
-        ))
-        .unwrap(); // guess correct +64
-        let split = set.into_view();
-        let score = tree.execute_for_score(&split, Class::from(true), Cost).unwrap();
-        assert_eq!(score.threshold().value(), 2.0);
-        assert_eq!(score.value(), 25.0); // sum of +1 -8 -32 +64
     }
 
     pub(crate) fn create_short_tree() -> Tree {

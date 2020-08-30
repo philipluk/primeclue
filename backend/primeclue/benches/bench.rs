@@ -22,7 +22,7 @@ use primeclue::data::data_set::DataSet;
 use primeclue::data::outcome::Class;
 use primeclue::data::{Input, Outcome, Point, Size};
 use primeclue::exec::class_training::ClassTraining;
-use primeclue::exec::score::Objective::AUC;
+use primeclue::exec::score::Objective::{Cost, AUC};
 use primeclue::exec::training_group::TrainingGroup;
 use primeclue::exec::tree::Tree;
 use primeclue::rand::GET_RNG;
@@ -66,6 +66,21 @@ fn check_nans_same(c: &mut Criterion) {
                 }
                 black_box(changed);
             }
+        })
+    });
+}
+
+fn threshold_cost_bench(c: &mut Criterion) {
+    let data = create_sample_data(10_000);
+    let mut rng = GET_RNG();
+    let mut outcomes = vec![];
+    for p in data.iter() {
+        outcomes.push((rng.gen_range(0.0, 1.0), p.data().1.clone()));
+    }
+    c.bench_function("threshold_cost", |b| {
+        b.iter(|| {
+            let t = Cost.threshold(&outcomes, Class::new(1));
+            black_box(t);
         })
     });
 }
@@ -162,6 +177,7 @@ criterion_group!(
     select_node,
     check_nans_same,
     vec_add_fast,
+    threshold_cost_bench
 );
 criterion_main!(benches);
 

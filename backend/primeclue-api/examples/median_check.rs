@@ -81,7 +81,7 @@ fn check_once(path: &str, minutes: usize) -> Option<f32> {
 
     // Get classifier after training has finished. It will fail if there is no classifier for any of the classes
     let classifier = training.classifier().ok()?;
-    println!("Average classifier score on training data: {:?}", classifier.average_score());
+
     // Get classifier's score on unseen data
     classifier.execute_for_score(&test_data)
 }

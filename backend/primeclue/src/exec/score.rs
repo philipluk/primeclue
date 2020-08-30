@@ -31,6 +31,16 @@ pub enum Objective {
     Accuracy,
 }
 
+impl Objective {
+    pub fn threshold(&self, outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+        match self {
+            Objective::Cost => cost_threshold(outcomes, class),
+            Objective::AUC => auc_threshold(outcomes, class),
+            Objective::Accuracy => accuracy_threshold(outcomes, class),
+        }
+    }
+}
+
 impl Serializable for Objective {
     fn serialize(&self, s: &mut Serializator) {
         let var = match self {
@@ -201,6 +211,7 @@ pub fn calc_score(
     Score { objective, class, value, threshold }
 }
 
+#[must_use]
 fn calculate_auc(outcomes: &[(f32, Outcome)], class: Class) -> f32 {
     let mut incorrect_count = 0_usize;
     let mut correct_count = 0_usize;
@@ -216,6 +227,7 @@ fn calculate_auc(outcomes: &[(f32, Outcome)], class: Class) -> f32 {
     total_incorrect as f32 / (correct_count * incorrect_count) as f32
 }
 
+#[must_use]
 fn calculate_accuracy(threshold: Threshold, outcomes: &[(f32, Outcome)], class: Class) -> f32 {
     let mut correct = 0;
     let mut total = 0;
@@ -233,7 +245,18 @@ fn calculate_accuracy(threshold: Threshold, outcomes: &[(f32, Outcome)], class: 
 }
 
 #[must_use]
-pub fn threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+fn calculate_cost(threshold: Threshold, outcomes: &[(f32, Outcome)], class: Class) -> f32 {
+    let mut cost = 0.0;
+    for (guess, outcome) in outcomes.iter() {
+        if let Some(b) = threshold.bool(*guess) {
+            cost += outcome.calculate_score(b, class);
+        }
+    }
+    cost
+}
+
+#[must_use]
+pub fn auc_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
     let none_class_count =
         outcomes.iter().map(|(_, o)| o.class()).filter(|c| c != &class).count();
     if none_class_count == 0 {
@@ -245,14 +268,48 @@ pub fn threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
     }
 }
 
-fn calculate_cost(threshold: Threshold, outcomes: &[(f32, Outcome)], class: Class) -> f32 {
-    let mut cost = 0.0;
-    for (guess, outcome) in outcomes.iter() {
-        if let Some(b) = threshold.bool(*guess) {
-            cost += outcome.calculate_score(b, class);
+#[must_use]
+fn cost_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+    let mut false_list = Vec::with_capacity(outcomes.len());
+    let mut false_cost = 0.0;
+    for (guess, outcome) in outcomes {
+        let false_reward = outcome.calculate_score(false, class);
+        false_list.push((*guess, *outcome, false_cost));
+        false_cost += false_reward;
+    }
+    let mut true_cost = 0.0;
+    false_list.reverse();
+    let mut cost_list = Vec::with_capacity(false_list.len());
+    for (guess, outcome, false_reward) in false_list {
+        let true_reward = outcome.calculate_score(true, class);
+        true_cost += true_reward;
+        cost_list.push((guess, outcome, false_reward + true_cost));
+    }
+    cost_list.sort_by(|(_, _, cost1), (_, _, cost2)| cost1.partial_cmp(cost2).unwrap());
+    Threshold::new(cost_list.last().unwrap().0)
+}
+
+#[must_use]
+fn accuracy_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+    let mut incorrect_list = Vec::with_capacity(outcomes.len());
+    let mut incorrect_count = 0;
+    for (guess, outcome) in outcomes {
+        incorrect_list.push((*guess, *outcome, incorrect_count));
+        if outcome.class() != class {
+            incorrect_count += 1;
         }
     }
-    cost
+    let mut correct_count = 0;
+    incorrect_list.reverse();
+    let mut accuracy_list = Vec::with_capacity(incorrect_list.len());
+    for (guess, outcome, incorrect_count) in incorrect_list {
+        if outcome.class() == class {
+            correct_count += 1;
+        }
+        accuracy_list.push((guess, outcome, incorrect_count + correct_count));
+    }
+    accuracy_list.sort_by(|(_, _, count1), (_, _, count2)| count1.cmp(count2));
+    Threshold::new(accuracy_list.last().unwrap().0)
 }
 
 #[cfg(test)]
@@ -260,7 +317,10 @@ mod test {
     use crate::data::outcome::Class;
     use crate::data::Outcome;
     use crate::exec::score::Objective::{Accuracy, Cost, AUC};
-    use crate::exec::score::{threshold, Score, Threshold};
+    use crate::exec::score::{
+        accuracy_threshold, auc_threshold, calculate_accuracy, calculate_cost, cost_threshold,
+        Score, Threshold,
+    };
     use crate::serialization::serializator::test::test_serialization;
     use std::cmp::Ordering::Equal;
 
@@ -319,7 +379,7 @@ mod test {
     }
 
     #[test]
-    fn test_threshold() {
+    fn test_auc_threshold() {
         // Classification uses >= comparison
         // So if threshold is 3.14 then everything that is greater or equal 3.14 will be classified as true
         // Outcomes must be sorted in ascending order of first part of tuple
@@ -328,7 +388,7 @@ mod test {
             (-3.0, Outcome::new(Class::from(true), 1.0, -1.0)),
             (-1.0, Outcome::new(Class::from(true), 1.0, -1.0)),
         ];
-        let t = threshold(&outcomes, Class::from(true)); // if false_count == 1 then return 2nd value
+        let t = auc_threshold(&outcomes, Class::from(true)); // if false_count == 1 then return 2nd value
         assert_eq!(t.value(), -3.0);
 
         let outcomes = vec![
@@ -336,7 +396,7 @@ mod test {
             (-3.0, Outcome::new(Class::from(true), 1.0, -1.0)),
             (-1.0, Outcome::new(Class::from(true), 1.0, -1.0)),
         ];
-        let t = threshold(&outcomes, Class::from(false)); // if none false then return 2 * abs(last value)
+        let t = auc_threshold(&outcomes, Class::from(false)); // if none false then return 2 * abs(last value)
         assert_eq!(t.value(), 2.0);
 
         let outcomes = vec![
@@ -344,7 +404,7 @@ mod test {
             (3.0, Outcome::new(Class::from(true), 1.0, -1.0)),
             (10.0, Outcome::new(Class::from(true), 1.0, -1.0)),
         ];
-        let t = threshold(&outcomes, Class::from(false)); // if none false then return double last value
+        let t = auc_threshold(&outcomes, Class::from(false)); // if none false then return double last value
         assert_eq!(t.value(), 20.0);
 
         let outcomes = vec![
@@ -352,7 +412,77 @@ mod test {
             (-3.0, Outcome::new(Class::from(true), 1.0, -1.0)),
             (-1.0, Outcome::new(Class::from(true), 1.0, -1.0)),
         ];
-        let t = threshold(&outcomes, Class::from(true)); // if none false then return first value
+        let t = auc_threshold(&outcomes, Class::from(true)); // if none false then return first value
         assert_eq!(t.value(), -10.0);
+    }
+
+    #[test]
+    fn test_cost_threshold() {
+        for _ in 0..1_000 {
+            let outcomes = get_biased_outcomes();
+            let slow_threshold = cost_threshold_on2(&outcomes, Class::new(1));
+            let fast_threshold = cost_threshold(&outcomes, Class::new(1));
+            assert_eq!(slow_threshold.value, fast_threshold.value);
+        }
+    }
+
+    #[test]
+    fn test_accuracy_threshold() {
+        for _ in 0..1_000 {
+            let outcomes = get_biased_outcomes();
+            let slow_threshold = accuracy_threshold_on2(&outcomes, Class::new(1));
+            let fast_threshold = accuracy_threshold(&outcomes, Class::new(1));
+            assert_eq!(slow_threshold.value, fast_threshold.value);
+        }
+    }
+
+    fn cost_threshold_on2(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+        let mut max_score = 0.0;
+        let mut threshold = Threshold::new(0.0);
+        for (g, _) in outcomes {
+            let t = Threshold::new(*g);
+            let score = calculate_cost(t, outcomes, class);
+            if score > max_score {
+                threshold = t;
+                max_score = score;
+            }
+        }
+        threshold
+    }
+
+    fn accuracy_threshold_on2(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+        let mut max_score = 0.0;
+        let mut threshold = Threshold::new(0.0);
+        for (g, _) in outcomes {
+            let t = Threshold::new(*g);
+            let score = calculate_accuracy(t, outcomes, class);
+            if score > max_score {
+                threshold = t;
+                max_score = score;
+            }
+        }
+        threshold
+    }
+
+    fn get_biased_outcomes() -> Vec<(f32, Outcome)> {
+        use crate::rand::GET_RNG;
+        use rand::Rng;
+
+        let mut rng = GET_RNG();
+        let mut outcomes: Vec<(f32, Outcome)> = vec![];
+        for _ in 0..50 {
+            let guess = rng.gen_range(0.0, 0.7);
+            let reward = rng.gen_range(0.0, 1.0);
+            let penalty = rng.gen_range(-1.0, 0.0);
+            outcomes.push((guess, Outcome::new(Class::new(0), reward, penalty)));
+        }
+        for _ in 0..50 {
+            let guess = rng.gen_range(0.3, 1.0);
+            let reward = rng.gen_range(0.0, 1.0);
+            let penalty = rng.gen_range(-1.0, 0.0);
+            outcomes.push((guess, Outcome::new(Class::new(1), reward, penalty)));
+        }
+        outcomes.sort_by(|(g1, _), (g2, _)| g1.partial_cmp(g2).unwrap());
+        outcomes
     }
 }

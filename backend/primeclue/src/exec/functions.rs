@@ -456,7 +456,6 @@ pub static TWO_ARG_FUNCTIONS: [DoubleArgFunction; 17] = [
     DoubleArgFunction { name: "round_equal_array", fun: round_equal_array },
 ];
 
-
 #[cfg(test)]
 mod test {
     use crate::exec::functions::{equal, relu};
