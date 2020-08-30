@@ -24,6 +24,12 @@ use core::fmt;
 use std::cmp::Ordering;
 use std::cmp::Ordering::Equal;
 
+///
+/// An enum used to gauge a classifier goodness. Training is performed to maximize this
+/// value.
+/// * `Cost` - use cost function with reward and penalty for correct / incorrect predictions respectively
+/// * `AUC` - use area under curve
+/// * `Accuracy` - use simple accuracy
 #[derive(Debug, PartialEq, Copy, Clone, serde::Deserialize, serde::Serialize)]
 pub enum Objective {
     Cost,

@@ -68,6 +68,10 @@ impl Deserializable for Point {
     }
 }
 
+/// A structure that represents a cut through all data points within [`DataSet`] for
+/// each row/column coordinate.
+/// This is done mainly for performance (CPU cache and such) as dealing with vectors
+/// is usually faster than individual cells
 #[derive(Debug, Clone)]
 pub struct DataView {
     data_size: Size,
@@ -203,11 +207,29 @@ impl DataSet {
         self.points.iter()
     }
 
+    ///
+    /// Splits [`DataSet`] into three equal [`DataView`].
+    /// No attempt is made to ensure equal class count in each [`DataView`]
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::data::data_set::DataSet;
+    /// let data = DataSet::read_from_disk(&path).unwrap();
+    /// let (training_data, verification_data, test_data) = data.into_views_split();
+    /// ```
     pub fn into_views_split(self) -> (DataView, DataView, DataView) {
         let (s1, s2, s3) = self.split();
         (s1.into_view(), s2.into_view(), s3.into_view())
     }
 
+    ///
+    /// Shuffles data points within [`DataSet`]
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::data::data_set::DataSet;
+    /// let data = DataSet::read_from_disk(&path).unwrap().shuffle();
+    /// ```
     pub fn shuffle(mut self) -> Self {
         self.points.shuffle(&mut GET_RNG());
         self
@@ -232,6 +254,18 @@ impl DataSet {
         (training_set, verification_set, testing_set)
     }
 
+    /// Reads data in Primeclue format from disk
+    ///
+    /// # Arguments
+    /// * `path` - A [`PathBuf`] pointing to a data directory inside which `data.ssd` file must exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::path::PathBuf;
+    /// use primeclue::data::data_set::DataSet;
+    /// let data_set = DataSet::read_from_disk(&PathBuf::from(name)).ok()?;
+    /// ```
     pub fn read_from_disk(path: &PathBuf) -> Result<DataSet, PrimeclueErr> {
         let mut s = Serializator::load(&path.join(DATA_FILE_NAME))?;
         DataSet::deserialize(&mut s)

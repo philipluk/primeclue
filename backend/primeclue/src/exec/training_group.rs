@@ -37,6 +37,25 @@ pub struct TrainingGroup {
 }
 
 impl TrainingGroup {
+
+    /// Create a new [`TrainingGroup`] that can be used to train a classifier through
+    /// calling [`next_generation`].
+    ///
+    /// # Arguments
+    /// * `training_data` - [`DataView`] that represents training data view
+    /// * `verification_data` - [`DataView`] that represents verification data view
+    /// * `objective` - [`Objective`] that represents the measure to optimize for
+    /// * `size` - size of a training group. Determines amount of RAM needed
+    /// * `forbidden_cols` - indexes of data columns that should not be used as input
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::exec::training_group::TrainingGroup;
+    /// use primeclue::exec::score::Objective;
+    /// let mut training =
+    ///         TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
+    ///             .ok()?;
+    /// ```
     pub fn new(
         training_data: DataView,
         verification_data: DataView,
@@ -95,6 +114,17 @@ impl TrainingGroup {
         }
     }
 
+    /// Performs one generation training for one second
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::exec::training_group::TrainingGroup;
+    /// use primeclue::exec::score::Objective;
+    /// let mut training =
+    ///         TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
+    ///             .ok()?;
+    /// training.next_generation();
+    /// ```
     pub fn next_generation(&mut self) {
         self.generation += 1;
         let training_data = &self.training_data;
@@ -131,6 +161,19 @@ impl TrainingGroup {
         })
     }
 
+    /// Get [`Classifier`] after training. [`Classifier`] can later be used for
+    /// classification on unseen data.
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::exec::training_group::TrainingGroup;
+    /// use primeclue::exec::score::Objective;
+    /// let mut training =
+    ///         TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
+    ///             .ok()?;
+    /// training.next_generation();
+    /// let classifier = training.classifier().unwrap();
+    /// ```
     pub fn classifier(&self) -> Result<Classifier, PrimeclueErr> {
         let mut trees = Vec::new();
         for p in &self.classes {

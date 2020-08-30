@@ -42,6 +42,7 @@ impl Display for AppliedScore {
     }
 }
 
+/// A structure containing a classifier trained via [`TrainingGroup`]
 #[derive(Debug, PartialEq)]
 pub struct Classifier {
     classes: HashMap<Class, String>,
@@ -111,6 +112,20 @@ impl Classifier {
         responses
     }
 
+    /// Execute on [`DataView`] to get a score.
+    /// This is usually done on unseen data to present value to a user.
+    ///
+    /// # Example
+    /// ```
+    /// use primeclue::exec::training_group::TrainingGroup;
+    /// use primeclue::exec::score::Objective;
+    /// let mut training =
+    ///         TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
+    ///             .ok()?;
+    /// training.next_generation();
+    /// let classifier = training.classifier().unwrap();
+    /// let score = classifer.execute_for_score(test_data);
+    /// ```
     pub fn execute_for_score(&self, data: &DataView) -> Option<f32> {
         let mut trees = self.sorted_trees();
         trees.remove(0);
