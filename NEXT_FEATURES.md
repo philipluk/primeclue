@@ -1,6 +1,9 @@
 If you'd like some feature implemented, and it's not on the list below, 
 let me know at [lukasz.wojtow@gmail.com](mailto:lukasz.wojtow@gmail.com).<br>
 
+<h4>Display cost per data point</h4>
+For Cost objective it would be interesting to see value of cost / data point
+
 <h4>Include data header + option to view imported data</h4>
 This would be some sort of list at the beginning of DataSet. Then, GUI would give option to view data with column names. 
 
