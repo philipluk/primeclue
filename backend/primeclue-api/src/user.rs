@@ -28,32 +28,33 @@ pub(crate) const CLASSIFIERS_DIR: &str = "classifiers";
 
 #[derive(Clone)]
 pub(crate) struct Settings {
-    home: PathBuf,
+    base_dir: PathBuf,
 }
 
 impl Settings {
     pub(crate) fn new() -> Result<Settings, String> {
-        let home = dirs::home_dir()
+        // TODO get base directory from env variable if present
+        let base_dir = dirs::home_dir()
             .ok_or_else(|| "Unable to get user's home directory".to_string())?
             .join("Primeclue");
-        create_dir(&home)?;
-        let data = home.join(DATA_DIR);
+        create_dir(&base_dir)?;
+        let data = base_dir.join(DATA_DIR);
         create_dir(&data)?;
-        let projects = home.join(CLASSIFIERS_DIR);
+        let projects = base_dir.join(CLASSIFIERS_DIR);
         create_dir(&projects)?;
-        Ok(Settings { home })
+        Ok(Settings { base_dir })
     }
 
-    pub(crate) fn home_dir(&self) -> &PathBuf {
-        &self.home
+    pub(crate) fn base_dir(&self) -> &PathBuf {
+        &self.base_dir
     }
 
     pub(crate) fn data_dir(&self) -> PathBuf {
-        self.home.clone().join(DATA_DIR)
+        self.base_dir.clone().join(DATA_DIR)
     }
 
     pub(crate) fn classifier_dir(&self) -> PathBuf {
-        self.home.clone().join(CLASSIFIERS_DIR)
+        self.base_dir.clone().join(CLASSIFIERS_DIR)
     }
 }
 

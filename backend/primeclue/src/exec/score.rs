@@ -24,7 +24,6 @@ use core::fmt;
 use std::cmp::Ordering;
 use std::cmp::Ordering::Equal;
 
-///
 /// An enum used to gauge a classifier goodness. Training is performed to maximize this
 /// value.
 /// * `Cost` - use cost function with reward and penalty for correct / incorrect predictions respectively

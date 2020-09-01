@@ -70,8 +70,8 @@ impl ClassProducer {
 
 pub(crate) fn remove(name: &str) -> Result<(), PrimeclueErr> {
     let settings = Settings::new()?;
-    let org_path = Path::new(settings.home_dir()).join(DATA_DIR).join(name);
-    let remove_path = Path::new(settings.home_dir())
+    let org_path = Path::new(settings.base_dir()).join(DATA_DIR).join(name);
+    let remove_path = Path::new(settings.base_dir())
         .join(DATA_DIR)
         .join(format!("{}_{}", DELETE_IN_PROGRESS, name));
     fs::rename(org_path, remove_path.clone())?;
@@ -285,7 +285,7 @@ fn save_data<F>(
 where
     F: FnMut(usize) -> Result<(), PrimeclueErr>,
 {
-    let path = Path::new(settings.home_dir()).join(DATA_DIR).join(name);
+    let path = Path::new(settings.base_dir()).join(DATA_DIR).join(name);
     data.save_to_disk(&path, callback)
 }
 

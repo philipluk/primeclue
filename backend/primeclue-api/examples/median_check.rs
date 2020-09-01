@@ -35,10 +35,10 @@ fn main() -> Result<(), PrimeclueErr> {
         .next()
         .ok_or("Need path to data as first arg".to_string())
         .map_err(PrimeclueErr::from)?;
-    let minutes = env::args()
+    let seconds = env::args()
         .skip(2)
         .next()
-        .ok_or("Need time in minutes as second arg".to_string())
+        .ok_or("Need time in seconds as last arg".to_string())
         .map_err(PrimeclueErr::from)?
         .parse::<usize>()
         .map_err(|_| "Time must be an integer".to_string())?;
@@ -46,7 +46,7 @@ fn main() -> Result<(), PrimeclueErr> {
     let count = 19;
     let mut results = Vec::with_capacity(count);
     while results.len() < count {
-        if let Some(result) = check_once(&path, minutes) {
+        if let Some(result) = check_once(&path, seconds) {
             results.push(result);
             println!("{}/{}: {} ", results.len(), count, result);
         }
@@ -57,7 +57,7 @@ fn main() -> Result<(), PrimeclueErr> {
     Ok(())
 }
 
-fn check_once(path: &str, minutes: usize) -> Option<f32> {
+fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
     let data = DataSet::read_from_disk(&PathBuf::from(path)).ok()?;
 
@@ -66,7 +66,7 @@ fn check_once(path: &str, minutes: usize) -> Option<f32> {
     let (training_data, verification_data, test_data) = data.shuffle().into_views_split();
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
-    let end_time = Instant::now().add(std::time::Duration::from_secs(60 * minutes as u64));
+    let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
 
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.

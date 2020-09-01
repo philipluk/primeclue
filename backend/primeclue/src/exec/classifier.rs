@@ -113,42 +113,33 @@ impl Classifier {
     }
 
     /// Execute on [`DataView`] to get a score.
-    /// This is usually done on unseen data to present value to a user.
-    ///
-    /// # Example
-    /// ```
-    /// use primeclue::exec::training_group::TrainingGroup;
-    /// use primeclue::exec::score::Objective;
-    /// let mut training =
-    ///         TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
-    ///             .ok()?;
-    /// training.next_generation();
-    /// let classifier = training.classifier().unwrap();
-    /// let score = classifer.execute_for_score(test_data);
-    /// ```
+    /// This is average score from all classes weighted by their training score.
+    /// Usually done on unseen data to present value to a user.
     pub fn execute_for_score(&self, data: &DataView) -> Option<f32> {
-        let mut trees = self.sorted_trees();
-        trees.remove(0);
-        let mut test_score = 0.0;
-        for tree in &trees {
-            test_score += tree.execute_for_score(&data)?.value();
+        let mut sum_score = 0.0;
+        let mut sum_weight = 0.0;
+        for tree in &self.trees {
+            let score = tree.execute_for_score(&data)?.value();
+            let weight = tree.score().value();
+            sum_score += score * weight;
+            sum_weight += weight;
         }
-        Some(test_score / trees.len() as f32)
+        Some(sum_score / sum_weight)
     }
 
     pub fn applied_score(&self, data: &DataView) -> Option<AppliedScore> {
-        let results = self.classify(data);
+        let predictions = self.classify(data);
         let mut correct = 0;
         let mut total = 0;
         let mut reward = 0.0;
         let mut penalty = 0.0;
-        for (actual, outcome) in results.iter().zip(data.outcomes()) {
-            if actual.is_empty() {
+        for (prediction, outcome) in predictions.iter().zip(data.outcomes()) {
+            if prediction.is_empty() {
                 continue;
             }
             total += 1;
             let expected = data.class_map().get(&outcome.class())?;
-            if actual == expected {
+            if prediction == expected {
                 correct += 1;
                 reward += outcome.reward();
             } else {

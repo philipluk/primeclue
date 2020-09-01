@@ -167,7 +167,7 @@ pub(crate) fn list() -> Result<Vec<String>, PrimeclueErr> {
 
 pub(crate) fn remove(name: &str) -> Result<(), PrimeclueErr> {
     let settings = Settings::new()?;
-    let path = Path::new(settings.home_dir()).join(CLASSIFIERS_DIR).join(name);
+    let path = Path::new(settings.base_dir()).join(CLASSIFIERS_DIR).join(name);
     fs::remove_dir_all(&path)?;
     Ok(())
 }
@@ -175,7 +175,7 @@ pub(crate) fn remove(name: &str) -> Result<(), PrimeclueErr> {
 fn create_classifier_dir(request: &CreateRequest) -> Result<PathBuf, PrimeclueErr> {
     let settings = Settings::new()?;
     let path =
-        Path::new(settings.home_dir()).join(CLASSIFIERS_DIR).join(&request.classifier_name);
+        Path::new(settings.base_dir()).join(CLASSIFIERS_DIR).join(&request.classifier_name);
     if path.exists() {
         PrimeclueErr::result(format!("Path {:?} already exists", path))
     } else {
@@ -213,7 +213,7 @@ impl ClassifyRequest {
     fn read_classifier(&self) -> Result<Classifier, PrimeclueErr> {
         let settings = Settings::new()?;
         let path = settings
-            .home_dir()
+            .base_dir()
             .join(CLASSIFIERS_DIR)
             .join(&self.classifier_name)
             .join(CLASSIFIER_FILE_NAME);
