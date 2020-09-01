@@ -85,6 +85,7 @@ pub(crate) fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
             projects.push(utf_name);
         }
     }
+    projects.sort();
     Ok(projects)
 }
 
