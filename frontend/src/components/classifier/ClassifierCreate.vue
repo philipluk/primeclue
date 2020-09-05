@@ -11,7 +11,7 @@
           <div style="text-align: left">
             <div style="display: inline-flex; padding-top: 15px;">
               <div style="padding-top: 15px; width: 170px">
-                classifier name:
+                Classifier name:
               </div>
               <el-input style="width: 300px; margin-left: 10px" v-model="classifierName"/>
             </div>
@@ -66,6 +66,15 @@
                 Shuffle data:
               </div>
               <el-checkbox style="margin-top: 10px; margin-left: 10px" v-model="shuffleData"/>
+            </div>
+          </div>
+
+          <div style="text-align: left; padding-top: 15px">
+            <div style="display: inline-flex">
+              <div style="text-align: left; margin-top: 15px; width: 170px">
+                Keep unseen data:
+              </div>
+              <el-checkbox style="margin-top: 10px; margin-left: 10px" v-model="keepUnseenData"/>
             </div>
           </div>
 
@@ -169,6 +178,7 @@ export default {
       overrideRewards: false,
       forbiddenColumns: "",
       shuffleData: true,
+      keepUnseenData: true,
       reward: 1.0,
       penalty: -1.0,
       progress_data: [],
@@ -252,6 +262,7 @@ export default {
         override_rewards: this.overrideRewards,
         forbidden_columns: this.forbiddenColumns,
         shuffle_data: this.shuffleData,
+        keep_unseen_data: this.keepUnseenData,
         rewards: {
           reward: this.reward,
           penalty: this.penalty,

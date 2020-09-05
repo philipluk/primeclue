@@ -140,7 +140,7 @@ impl DataSet {
     pub fn into_view(self) -> DataView {
         // TODO change to Option, None if empty
         let mut cells = Data::new();
-        let input_shape = self.input_size();
+        let input_shape = self.input_shape();
         for row in 0..input_shape.rows() {
             let mut row_data = Vec::with_capacity(input_shape.columns());
             for column in 0..input_shape.columns() {
@@ -168,10 +168,10 @@ impl DataSet {
     pub fn add_data_point(&mut self, point: Point) -> Result<(), String> {
         let (input, _) = point.data();
         if !self.points.is_empty() {
-            if input.input_shape() != self.input_size() {
+            if input.input_shape() != self.input_shape() {
                 return Err(format!(
                     "Invalid input size, expecting {}, got: {}",
-                    self.input_size(),
+                    self.input_shape(),
                     input.input_shape()
                 ));
             }
@@ -198,7 +198,7 @@ impl DataSet {
     }
 
     #[must_use]
-    pub fn input_size(&self) -> &InputShape {
+    pub fn input_shape(&self) -> &InputShape {
         self.points[0].input.input_shape() // TODO check for empty points
     }
 
@@ -350,7 +350,7 @@ pub(crate) mod test {
     }
 
     #[test]
-    fn test_add_input_size() {
+    fn test_add_input_shape() {
         let mut data = DataSet::new(HashMap::new());
         data.add_data_point(Point::new(
             Input::from_vector(vec![vec![1.0, 2.0]]).unwrap(),

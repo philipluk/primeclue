@@ -48,6 +48,7 @@ pub(crate) struct CreateRequest {
     size: usize,
     forbidden_columns: String,
     shuffle_data: bool,
+    keep_unseen_data: bool,
 }
 
 pub(crate) fn create(
@@ -56,7 +57,6 @@ pub(crate) fn create(
     terminator: &Receiver<Termination>,
 ) -> Result<String, PrimeclueErr> {
     let data_set = data(request)?;
-    println!("Got data, {:?}, points: {}", data_set.input_size(), data_set.len());
     let result = start_training(request, data_set, status_callback, terminator)?;
     Ok(result)
 }
@@ -85,15 +85,14 @@ fn print_cost_range(data1: &DataView, data2: &DataView) {
 
 fn start_training(
     request: &CreateRequest,
-    data_set: DataSet,
+    mut data_set: DataSet,
     status_callback: &StatusCallback,
     terminator: &Receiver<Termination>,
 ) -> Result<String, PrimeclueErr> {
-    let (training_data, verification_data, test_data) = if request.shuffle_data {
-        data_set.shuffle().into_3_views_split()
-    } else {
-        data_set.into_3_views_split()
-    };
+    if request.shuffle_data {
+        data_set = data_set.shuffle();
+    }
+    let (training_data, verification_data, test_data) = split_into_sets(data_set, request.keep_unseen_data);
     print_cost_range(&training_data, &test_data);
     let forbidden_cols = parse_forbidden_columns(&request.forbidden_columns)?;
     let dst_dir = create_classifier_dir(&request)?;
@@ -218,6 +217,16 @@ impl ClassifyRequest {
             .join(&self.classifier_name)
             .join(CLASSIFIER_FILE_NAME);
         Ok(Classifier::deserialize(&mut Serializator::load(&path)?)?)
+    }
+}
+
+fn split_into_sets(data: DataSet, keep_unseen: bool) -> (DataView, DataView, DataView) {
+    if keep_unseen {
+        data.into_3_views_split()
+    } else {
+        let test = data.clone().into_view();
+        let (training, verification) = data.into_2_views_split();
+        (training, verification, test)
     }
 }
 

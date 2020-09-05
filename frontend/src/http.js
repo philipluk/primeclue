@@ -64,7 +64,7 @@ export const http = {
                 .then(r => {
                     callback(r.data.status, job_id);
                     if (r.data.status === "Pending" || r.data.status.Progress !== undefined) {
-                        setTimeout(handler, 1000);
+                        setTimeout(handler, 100);
                     } else if (on_done !== undefined) {
                         if (r.data.status.Ok !== undefined) {
                             on_done(r.data.status.Ok);
