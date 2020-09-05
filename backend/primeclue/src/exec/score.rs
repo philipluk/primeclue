@@ -282,8 +282,8 @@ fn cost_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
         false_list.push((*guess, *outcome, false_cost));
         false_cost += false_reward;
     }
-    let mut true_cost = 0.0;
     false_list.reverse();
+    let mut true_cost = 0.0;
     let mut cost_list = Vec::with_capacity(false_list.len());
     for (guess, outcome, false_reward) in false_list {
         let true_reward = outcome.calculate_score(true, class);
@@ -423,25 +423,27 @@ mod test {
 
     #[test]
     fn test_cost_threshold() {
+        let class = Class::new(1);
         for _ in 0..1_000 {
             let outcomes = get_biased_outcomes();
-            let slow_threshold = cost_threshold_on2(&outcomes, Class::new(1));
-            let fast_threshold = cost_threshold(&outcomes, Class::new(1));
+            let slow_threshold = naive_cost_threshold(&outcomes, class);
+            let fast_threshold = cost_threshold(&outcomes, class);
             assert_eq!(slow_threshold.value, fast_threshold.value);
         }
     }
 
     #[test]
     fn test_accuracy_threshold() {
+        let class = Class::new(1);
         for _ in 0..1_000 {
             let outcomes = get_biased_outcomes();
-            let slow_threshold = accuracy_threshold_on2(&outcomes, Class::new(1));
-            let fast_threshold = accuracy_threshold(&outcomes, Class::new(1));
+            let slow_threshold = naive_accuracy_threshold(&outcomes, class);
+            let fast_threshold = accuracy_threshold(&outcomes, class);
             assert_eq!(slow_threshold.value, fast_threshold.value);
         }
     }
 
-    fn cost_threshold_on2(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+    fn naive_cost_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
         let mut max_score = 0.0;
         let mut threshold = Threshold::new(0.0);
         for (g, _) in outcomes {
@@ -455,7 +457,7 @@ mod test {
         threshold
     }
 
-    fn accuracy_threshold_on2(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
+    fn naive_accuracy_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
         let mut max_score = 0.0;
         let mut threshold = Threshold::new(0.0);
         for (g, _) in outcomes {

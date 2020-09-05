@@ -38,7 +38,7 @@ fn main() {
     while Instant::now().lt(&end) {
         counter += 1;
         for _ in 0..1_000 {
-            let tree = Tree::new(data.data_size(), 30, &[], 0.5, 0.9);
+            let tree = Tree::new(data.input_shape(), 30, &[], 0.5, 0.9);
             if let Some(score) = tree.execute_for_score(&data, Class::new(0), AUC) {
                 if score.value() > best {
                     best = score.value();

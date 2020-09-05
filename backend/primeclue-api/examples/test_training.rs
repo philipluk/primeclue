@@ -70,7 +70,7 @@ fn training_success(attempt: usize) -> f64 {
         data_set.add_data_point(point).unwrap();
     }
 
-    let (training_data, verification_data, test_data) = data_set.shuffle().into_views_split();
+    let (training_data, verification_data, test_data) = data_set.shuffle().into_3_views_split();
 
     let mut training = TrainingGroup::new(
         training_data,

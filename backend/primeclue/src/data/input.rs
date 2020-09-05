@@ -18,7 +18,7 @@
 */
 
 use crate::data::Data;
-use crate::data::Size;
+use crate::data::InputShape;
 use crate::error::PrimeclueErr;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 
@@ -59,20 +59,20 @@ impl Input {
     }
 
     #[must_use]
-    pub fn size(&self) -> &Size {
-        self.data.size()
+    pub fn input_shape(&self) -> &InputShape {
+        self.data.input_shape()
     }
 
     #[must_use]
     pub fn row(&self, r: usize) -> Vec<f32> {
-        self.data.row(r).iter().map(|x| **x).collect()
+        self.data.row(r).into_iter().copied().collect()
     }
 }
 
 impl Serializable for Input {
     fn serialize(&self, s: &mut Serializator) {
-        s.add(self.data.size());
-        for i in 0..self.size().rows() {
+        s.add(self.data.input_shape());
+        for i in 0..self.input_shape().rows() {
             let row = self.row(i);
             row.serialize(s);
         }
@@ -82,8 +82,8 @@ impl Serializable for Input {
 impl Deserializable for Input {
     fn deserialize(s: &mut Serializator) -> Result<Input, String> {
         let mut id = Input::new();
-        let size = Size::deserialize(s)?;
-        for _ in 0..size.rows() {
+        let input_shape = InputShape::deserialize(s)?;
+        for _ in 0..input_shape.rows() {
             let row = Vec::deserialize(s)?;
             id.add_row(row).map_err(|e| e.to_string())?;
         }

@@ -18,7 +18,7 @@
 */
 
 use crate::data::outcome::Class;
-use crate::data::{Data, Input, Outcome, Size};
+use crate::data::{Data, Input, Outcome, InputShape};
 use crate::error::PrimeclueErr;
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
@@ -74,7 +74,7 @@ impl Deserializable for Point {
 /// is usually faster than individual cells
 #[derive(Debug, Clone)]
 pub struct DataView {
-    data_size: Size,
+    input_shape: InputShape,
     cells: Data<Vec<f32>>,
     outcomes: Vec<Outcome>,
     class_count: HashMap<Class, usize>,
@@ -96,8 +96,8 @@ impl DataView {
         self.class_count.len()
     }
 
-    pub fn data_size(&self) -> &Size {
-        &self.data_size
+    pub fn input_shape(&self) -> &InputShape {
+        &self.input_shape
     }
 
     pub fn cells(&self) -> &Data<Vec<f32>> {
@@ -140,10 +140,10 @@ impl DataSet {
     pub fn into_view(self) -> DataView {
         // TODO change to Option, None if empty
         let mut cells = Data::new();
-        let size = self.input_size();
-        for row in 0..size.rows() {
-            let mut row_data = Vec::with_capacity(size.columns());
-            for column in 0..size.columns() {
+        let input_shape = self.input_size();
+        for row in 0..input_shape.rows() {
+            let mut row_data = Vec::with_capacity(input_shape.columns());
+            for column in 0..input_shape.columns() {
                 let mut data = Vec::new();
                 for set in self.iter() {
                     data.push(set.input.get(row, column));
@@ -155,24 +155,24 @@ impl DataSet {
 
         let mut outcomes = Vec::with_capacity(self.len());
         let mut class_count = HashMap::new();
-        let data_size = *self.points[0].input.size();
+        let input_shape = *self.points[0].input.input_shape();
         for set in self.points {
             let outcome = set.outcome;
             outcomes.push(outcome);
             let count = class_count.remove(&outcome.class()).unwrap_or(0);
             class_count.insert(outcome.class(), count + 1);
         }
-        DataView { data_size, outcomes, cells, class_count, class_map: self.classes.clone() }
+        DataView { input_shape, outcomes, cells, class_count, class_map: self.classes.clone() }
     }
 
     pub fn add_data_point(&mut self, point: Point) -> Result<(), String> {
         let (input, _) = point.data();
         if !self.points.is_empty() {
-            if input.size() != self.input_size() {
+            if input.input_shape() != self.input_size() {
                 return Err(format!(
                     "Invalid input size, expecting {}, got: {}",
                     self.input_size(),
-                    input.size()
+                    input.input_shape()
                 ));
             }
             if !self.classes.contains_key(&point.outcome.class()) {
@@ -198,8 +198,8 @@ impl DataSet {
     }
 
     #[must_use]
-    pub fn input_size(&self) -> &Size {
-        self.points[0].input.size() // TODO check for empty points
+    pub fn input_size(&self) -> &InputShape {
+        self.points[0].input.input_shape() // TODO check for empty points
     }
 
     #[must_use]
@@ -209,9 +209,16 @@ impl DataSet {
 
     /// Splits [`DataSet`] into three equal [`DataView`].
     /// No attempt is made to ensure equal class count in each [`DataView`]
-    pub fn into_views_split(self) -> (DataView, DataView, DataView) {
-        let (s1, s2, s3) = self.split();
+    pub fn into_3_views_split(self) -> (DataView, DataView, DataView) {
+        let (s1, s2, s3) = self.split3();
         (s1.into_view(), s2.into_view(), s3.into_view())
+    }
+
+    /// Splits [`DataSet`] into two equal [`DataView`].
+    /// No attempt is made to ensure equal class count in each [`DataView`]
+    pub fn into_2_views_split(self) -> (DataView, DataView) {
+        let (s1, s2) = self.split2();
+        (s1.into_view(), s2.into_view())
     }
 
     /// Shuffles data points within [`DataSet`]
@@ -220,7 +227,7 @@ impl DataSet {
         self
     }
 
-    fn split(mut self) -> (DataSet, DataSet, DataSet) {
+    fn split3(mut self) -> (DataSet, DataSet, DataSet) {
         let mut training_set = DataSet::new(self.classes.clone());
         let mut verification_set = DataSet::new(self.classes.clone());
         let mut testing_set = DataSet::new(self.classes.clone());
@@ -237,6 +244,20 @@ impl DataSet {
             testing_set.add_data_point(point).unwrap();
         }
         (training_set, verification_set, testing_set)
+    }
+
+    fn split2(mut self) -> (DataSet, DataSet) {
+        let mut training_set = DataSet::new(self.classes.clone());
+        let mut verification_set = DataSet::new(self.classes.clone());
+        let verification_points = self.points.split_off(self.points.len() / 2);
+        let training_points = self.points;
+        for point in training_points {
+            training_set.add_data_point(point).unwrap();
+        }
+        for point in verification_points {
+            verification_set.add_data_point(point).unwrap();
+        }
+        (training_set, verification_set)
     }
 
     /// Reads data in Primeclue format from disk
@@ -368,11 +389,11 @@ pub(crate) mod test {
     }
 
     #[test]
-    fn test_multi_class_splitting() {
+    fn test_multi_class_3splitting() {
         let data = create_big_multiclass_data();
-        let exact_third = data.points.len() as f64 / 3 as f64;
-        let per_set_per_class = exact_third / 3.0;
-        let (tr, vs, tst) = data.shuffle().split();
+        let exact_third = data.points.len() as f64 / 3.0;
+        let per_set_per_class = exact_third / data.classes.len() as f64;
+        let (tr, vs, tst) = data.shuffle().split3();
         assert_eq!(tr.points.len(), exact_third as usize);
         assert_eq!(tr.points.len(), tst.points.len());
         assert_eq!(tr.points.len(), vs.points.len());
@@ -388,9 +409,26 @@ pub(crate) mod test {
     }
 
     #[test]
+    fn test_multi_class_2splitting() {
+        let data = create_big_multiclass_data();
+        let exact_half = data.points.len() as f64 / 2.0;
+        let per_set_per_class = exact_half / data.classes.len() as f64;
+        let (ts, vs) = data.shuffle().split2();
+        assert_eq!(ts.points.len(), exact_half as usize);
+        assert_eq!(ts.points.len(), vs.points.len());
+        for class in 0..3 {
+            let class = Class::new(class);
+            let tr_count = ts.points.iter().filter(|p| p.outcome.class() == class).count();
+            assert!(tr_count as f64 > 0.9 * per_set_per_class);
+            let vs_count = vs.points.iter().filter(|p| p.outcome.class() == class).count();
+            assert!(vs_count as f64 > 0.9 * per_set_per_class);
+        }
+    }
+
+    #[test]
     fn test_shuffling() {
         let data = create_simple_data();
-        let (tr, _, tst) = data.shuffle().into_views_split();
+        let (tr, _, tst) = data.shuffle().into_3_views_split();
         let tr_vec = tr.cells.get(0, 0);
         let tst_vec = tst.cells.get(0, 0);
         for (tr_value, tst_value) in tr_vec.iter().zip(tst_vec) {
@@ -404,7 +442,7 @@ pub(crate) mod test {
     #[test]
     fn test_no_shuffle() {
         let data = create_simple_data();
-        let (tr, _, tst) = data.into_views_split();
+        let (tr, _, tst) = data.into_3_views_split();
         let tr_vec = tr.cells.get(0, 0);
         let tst_vec = tst.cells.get(0, 0);
         for (tr_value, tst_value) in tr_vec.iter().zip(tst_vec) {

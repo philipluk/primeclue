@@ -20,7 +20,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use primeclue::data::data_set::DataSet;
 use primeclue::data::outcome::Class;
-use primeclue::data::{Input, Outcome, Point, Size};
+use primeclue::data::{Input, Outcome, Point, InputShape};
 use primeclue::exec::class_training::ClassTraining;
 use primeclue::exec::score::Objective::{Cost, AUC};
 use primeclue::exec::training_group::TrainingGroup;
@@ -37,7 +37,7 @@ fn select_node(c: &mut Criterion) {
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
         let tree =
-            Tree::new(&Size::new(1, 10), max_branch_length, &vec![], branch_prob, data_prob);
+            Tree::new(&InputShape::new(1, 10), max_branch_length, &vec![], branch_prob, data_prob);
         trees.push(tree)
     }
 
@@ -87,7 +87,7 @@ fn threshold_cost_bench(c: &mut Criterion) {
 
 fn training_group_generation_bench(c: &mut Criterion) {
     let (training_data, verification_data, _) =
-        create_sample_data(1_000).shuffle().into_views_split();
+        create_sample_data(1_000).shuffle().into_3_views_split();
     let mut training_group =
         TrainingGroup::new(training_data, verification_data, AUC, 10, &vec![]).unwrap();
     c.bench_function("training_group_generation_bench", |b| {
@@ -114,10 +114,10 @@ fn vec_add_fast(c: &mut Criterion) {
 
 fn next_generation_bench(c: &mut Criterion) {
     let (training_data, verification_data, _) =
-        create_sample_data(1_000).shuffle().into_views_split();
+        create_sample_data(1_000).shuffle().into_3_views_split();
 
     let mut class_training =
-        ClassTraining::new(10, training_data.data_size(), vec![], AUC, Class::new(0));
+        ClassTraining::new(10, training_data.input_shape(), vec![], AUC, Class::new(0));
     c.bench_function("next_generation", |b| {
         b.iter(|| {
             class_training.next_generation(black_box(&training_data), &verification_data);
@@ -134,7 +134,7 @@ fn execute_tree_bench(c: &mut Criterion) {
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
         let tree =
-            Tree::new(data.data_size(), max_branch_length, &vec![], branch_prob, data_prob);
+            Tree::new(data.input_shape(), max_branch_length, &vec![], branch_prob, data_prob);
         trees.push(tree)
     }
 
@@ -157,7 +157,7 @@ fn create_tree_bench(c: &mut Criterion) {
                 let data_prob = rng.gen_range(0.01, 0.99);
                 let branch_prob = rng.gen_range(0.01, 0.99);
                 let _ = Tree::new(
-                    black_box(&Size::new(1, 6)),
+                    black_box(&InputShape::new(1, 6)),
                     max_branch_length,
                     &forbidden_cols,
                     branch_prob,

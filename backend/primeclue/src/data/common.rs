@@ -25,19 +25,19 @@ use std::fmt::{Debug, Error, Formatter};
 
 #[derive(Clone)]
 pub struct Data<T> {
-    size: Size,
+    input_shape: InputShape,
     data: Vec<T>,
 }
 
 impl<T: Debug> Debug for Data<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "Size: {}, Data: {:?}", self.size, self.data)
+        write!(f, "Shape: {}, Data: {:?}", self.input_shape, self.data)
     }
 }
 
 impl<T: PartialEq> PartialEq for Data<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.data == other.data && self.size == other.size
+        self.data == other.data && self.input_shape == other.input_shape
     }
 }
 
@@ -50,37 +50,37 @@ impl<T> Default for Data<T> {
 impl<T> Data<T> {
     #[must_use]
     pub fn new() -> Data<T> {
-        Data { size: Size::new(0, 0), data: Vec::new() }
+        Data { input_shape: InputShape::new(0, 0), data: Vec::new() }
     }
 
     #[must_use]
     pub fn get(&self, row: usize, column: usize) -> &T {
-        &self.data[row * self.size.columns + column]
+        &self.data[row * self.input_shape.columns + column]
     }
 
     pub fn add_row(&mut self, row: Vec<T>) -> Result<usize, PrimeclueErr> {
-        if !self.data.is_empty() && self.size.columns() != row.len() {
+        if !self.data.is_empty() && self.input_shape.columns() != row.len() {
             PrimeclueErr::result(format!(
                 "Invalid number of columns, found: {}, required: {}",
                 row.len(),
-                self.size.columns()
+                self.input_shape.columns()
             ))
         } else {
-            self.size.update(self.size.rows() + 1, row.len());
+            self.input_shape.update(self.input_shape.rows() + 1, row.len());
             self.data.extend(row.into_iter());
-            Ok(self.size.rows())
+            Ok(self.input_shape.rows())
         }
     }
 
     #[must_use]
-    pub fn size(&self) -> &Size {
-        &self.size
+    pub fn input_shape(&self) -> &InputShape {
+        &self.input_shape
     }
 
     #[must_use]
     pub fn row(&self, r: usize) -> Vec<&T> {
-        let start = r * self.size.columns();
-        let end = start + self.size.columns();
+        let start = r * self.input_shape.columns();
+        let end = start + self.input_shape.columns();
         self.data[start..end].iter().collect()
     }
 
@@ -91,21 +91,21 @@ impl<T> Data<T> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Size {
+pub struct InputShape {
     rows: usize,
     columns: usize,
 }
 
-impl std::fmt::Display for Size {
+impl std::fmt::Display for InputShape {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "rows: {}, columns: {}", self.rows, self.columns)
     }
 }
 
-impl Size {
+impl InputShape {
     #[must_use]
-    pub fn new(rows: usize, columns: usize) -> Size {
-        Size { rows, columns }
+    pub fn new(rows: usize, columns: usize) -> InputShape {
+        InputShape { rows, columns }
     }
 
     #[must_use]
@@ -134,25 +134,25 @@ impl Size {
     }
 }
 
-impl Serializable for Size {
+impl Serializable for InputShape {
     fn serialize(&self, s: &mut Serializator) {
         s.add_items(&[&self.rows, &self.columns]);
     }
 }
 
-impl Deserializable for Size {
-    fn deserialize(s: &mut Serializator) -> Result<Size, String> {
+impl Deserializable for InputShape {
+    fn deserialize(s: &mut Serializator) -> Result<InputShape, String> {
         let next = s.next_token()?;
         let rows = next.parse().map_err(|e| format!("Unable to parse {}: {}", next, e))?;
         let next = s.next_token()?;
         let columns = next.parse().map_err(|e| format!("Unable to parse {}: {}", next, e))?;
-        Ok(Size::new(rows, columns))
+        Ok(InputShape::new(rows, columns))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::data::{Data, Size};
+    use crate::data::{Data, InputShape};
     use crate::rand::GET_RNG;
     use rand::Rng;
 
@@ -170,14 +170,14 @@ mod test {
     fn random_with_forbidden() {
         let mut rng = GET_RNG();
         let columns = 100;
-        let size = Size::new(1, columns);
+        let shape = InputShape::new(1, columns);
         for _ in 0..100 {
             let mut forbidden = vec![];
             for _ in 1..rng.gen_range(2, columns) {
                 forbidden.push(rng.gen_range(0, columns))
             }
             for _ in 0..100 {
-                let (_, column) = size.random_row_column(&forbidden);
+                let (_, column) = shape.random_row_column(&forbidden);
                 assert!(!forbidden.contains(&column))
             }
         }

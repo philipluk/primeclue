@@ -43,16 +43,20 @@ fn main() -> Result<(), PrimeclueErr> {
         .parse::<usize>()
         .map_err(|_| "Time must be an integer".to_string())?;
 
-    let count = 19;
+    let count = 20;
     let mut results = Vec::with_capacity(count);
-    while results.len() < count {
+    for run in 0..count {
         if let Some(result) = check_once(&path, seconds) {
             results.push(result);
-            println!("{}/{}: {} ", results.len(), count, result);
+            println!("Loop #{} of {} result: {} ", run + 1, count, result);
+        } else {
+            println!("No result for loop #{}", run + 1);
         }
     }
-    results.sort_by(|v1, v2| v1.partial_cmp(&v2).unwrap());
-    let median = results[count / 2];
+    if results.is_empty() {
+        return Ok(());
+    }
+    let median = median(&mut results);
     println!("Median result for {:?}: {}", path, median);
     Ok(())
 }
@@ -63,7 +67,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.
-    let (training_data, verification_data, test_data) = data.shuffle().into_views_split();
+    let (training_data, verification_data, test_data) = data.shuffle().into_3_views_split();
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
     let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
@@ -71,7 +75,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
-        TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &vec![])
+        TrainingGroup::new(training_data, verification_data, Objective::Cost, 10, &vec![])
             .ok()?;
 
     // Actual training happens here
@@ -84,4 +88,20 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
 
     // Get classifier's score on unseen data
     classifier.execute_for_score(&test_data)
+
+    // Use the following code to get cost per each "true" label predicted
+    // let predictions = classifier.classify(&test_data);
+    // let true_count = predictions.iter().filter(|&&p| p == "true").count();
+    // let points = classifier.applied_score(&test_data)?.cost;
+    // Some(points / true_count as f32)
+}
+
+fn median(values: &mut [f32]) -> f32 {
+    values.sort_by(|v1, v2| v1.partial_cmp(&v2).unwrap());
+    let middle = values.len() / 2;
+    if values.len() % 2 == 0 {
+        (values[middle] + values[middle - 1]) / 2.0
+    } else {
+        values[middle]
+    }
 }

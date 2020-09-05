@@ -19,7 +19,7 @@
 
 use crate::data::data_set::DataView;
 use crate::data::outcome::{sort_guesses, Class};
-use crate::data::Size;
+use crate::data::InputShape;
 use crate::exec::node::Weighted;
 use crate::exec::score::{calc_score, Objective, Score};
 use crate::rand::GET_RNG;
@@ -29,37 +29,37 @@ use rand::Rng;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Tree {
     node: Weighted,
-    data_size: Size,
+    input_shape: InputShape,
     node_count: usize,
 }
 
 impl Serializable for Tree {
     fn serialize(&self, s: &mut Serializator) {
-        s.add_items(&[&self.node, &self.data_size, &self.node_count]);
+        s.add_items(&[&self.node, &self.input_shape, &self.node_count]);
     }
 }
 
 impl Deserializable for Tree {
     fn deserialize(s: &mut Serializator) -> Result<Tree, String> {
         let node = Weighted::deserialize(s)?;
-        let data_size = Size::deserialize(s)?;
+        let input_shape = InputShape::deserialize(s)?;
         let node_count = usize::deserialize(s)?;
-        Ok(Tree { node, data_size, node_count })
+        Ok(Tree { node, input_shape, node_count })
     }
 }
 
 impl Tree {
     pub fn new(
-        size: &Size,
+        input_shape: &InputShape,
         max_branch_length: usize,
         forbidden_cols: &[usize],
         branch_prob: f64,
         data_prob: f64,
     ) -> Tree {
         let node =
-            Weighted::new(0, size, branch_prob, max_branch_length, forbidden_cols, data_prob);
+            Weighted::new(0, input_shape, branch_prob, max_branch_length, forbidden_cols, data_prob);
         let node_count = node.node_count();
-        Tree { node, data_size: *size, node_count }
+        Tree { node, input_shape: *input_shape, node_count }
     }
 
     pub fn change_weights(&mut self) {
@@ -72,9 +72,9 @@ impl Tree {
     }
 
     pub fn mutate(&mut self, forbidden_cols: &[usize]) {
-        let data_size = self.data_size;
+        let input_shape = self.input_shape;
         let node = self.select_random_node();
-        node.mutate(&data_size, forbidden_cols);
+        node.mutate(&input_shape, forbidden_cols);
     }
 
     pub fn select_node(&mut self, node_id: usize) -> &mut Weighted {
@@ -94,8 +94,8 @@ impl Tree {
     }
 
     #[must_use]
-    pub fn data_size(&self) -> &Size {
-        &self.data_size
+    pub fn input_shape(&self) -> &InputShape {
+        &self.input_shape
     }
 
     #[must_use]
@@ -137,7 +137,7 @@ impl Tree {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::data::Size;
+    use crate::data::InputShape;
     use crate::exec::functions::{MATH_CONSTANTS, ONE_ARG_FUNCTIONS, TWO_ARG_FUNCTIONS};
     use crate::exec::node::{Node, Weighted};
     use crate::exec::tree::Tree;
@@ -147,10 +147,10 @@ pub(crate) mod test {
 
     #[test]
     fn serialize_tree() {
-        let size = Size::new(10, 20);
+        let input_shape = InputShape::new(10, 20);
         for _ in 0..10_000 {
             let max_branch_length = GET_RNG().gen_range(2, 15);
-            let tree = Tree::new(&size, max_branch_length, &Vec::new(), 0.5, 0.5);
+            let tree = Tree::new(&input_shape, max_branch_length, &Vec::new(), 0.5, 0.5);
             test_serialization(tree);
         }
     }
@@ -169,7 +169,7 @@ pub(crate) mod test {
         let n6 = Node::DoubleArgFunction(&TWO_ARG_FUNCTIONS[3], w4, w5);
         let node_count = n6.node_count();
 
-        Tree { node: Weighted::from(n6), data_size: Size::new(1, 1), node_count }
+        Tree { node: Weighted::from(n6), input_shape: InputShape::new(1, 1), node_count }
     }
 
     #[test]
@@ -182,7 +182,7 @@ pub(crate) mod test {
         let n1 = Node::DataValue(0, 0);
         let w1 = Weighted::from(n1);
         let node_count = w1.node_count();
-        Tree { node: w1, data_size: Size::new(1, 1), node_count }
+        Tree { node: w1, input_shape: InputShape::new(1, 1), node_count }
     }
 
     pub(crate) fn create_long_tree() -> Tree {
@@ -190,6 +190,6 @@ pub(crate) mod test {
         let w1 = Weighted::from(n1);
         let w = Weighted::from(Node::SingleArgFunction(&ONE_ARG_FUNCTIONS[0], w1));
         let node_count = w.node_count();
-        Tree { node: w, data_size: Size::new(1, 1), node_count }
+        Tree { node: w, input_shape: InputShape::new(1, 1), node_count }
     }
 }

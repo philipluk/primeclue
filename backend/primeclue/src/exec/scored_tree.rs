@@ -18,7 +18,7 @@
 */
 
 use crate::data::data_set::DataView;
-use crate::data::Size;
+use crate::data::InputShape;
 use crate::exec::score::Score;
 use crate::exec::tree::Tree;
 use crate::serialization::{Deserializable, Serializable, Serializator};
@@ -44,8 +44,8 @@ impl PartialOrd for ScoredTree {
 }
 
 impl ScoredTree {
-    pub fn data_size(&self) -> &Size {
-        self.tree.data_size()
+    pub fn input_shape(&self) -> &InputShape {
+        self.tree.input_shape()
     }
 
     pub fn score(&self) -> Score {

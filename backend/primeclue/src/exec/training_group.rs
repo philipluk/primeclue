@@ -58,7 +58,7 @@ impl TrainingGroup {
             .map(|class| {
                 ClassTraining::new(
                     size,
-                    training_data.data_size(),
+                    training_data.input_shape(),
                     forbidden_cols.to_vec(),
                     objective,
                     Class::new(class as u16),
@@ -93,11 +93,11 @@ impl TrainingGroup {
                 training_data.class_count(),
                 verification_data.class_count()
             ))
-        } else if verification_data.data_size() != training_data.data_size() {
+        } else if verification_data.input_shape() != training_data.input_shape() {
             PrimeclueErr::result(format!(
                 "Training and verification data differ in data size: {:?} vs {:?}",
-                training_data.data_size(),
-                verification_data.data_size()
+                training_data.input_shape(),
+                verification_data.input_shape()
             ))
         } else {
             Ok(())
@@ -184,7 +184,7 @@ mod test {
     #[test]
     fn test_generation() {
         let data = create_simple_data();
-        let (training, verification, _) = data.shuffle().into_views_split();
+        let (training, verification, _) = data.shuffle().into_3_views_split();
         let mut training_group =
             TrainingGroup::new(training, verification, AUC, 3, &Vec::new()).unwrap();
         training_group.next_generation();

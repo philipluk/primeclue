@@ -18,7 +18,7 @@
 */
 
 pub use self::common::Data;
-pub use self::common::Size;
+pub use self::common::InputShape;
 pub use self::data_set::Point;
 pub use self::input::Input;
 pub use self::outcome::Outcome;

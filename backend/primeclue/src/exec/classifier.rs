@@ -19,7 +19,7 @@
 
 use crate::data::data_set::DataView;
 use crate::data::outcome::Class;
-use crate::data::Size;
+use crate::data::InputShape;
 use crate::error::PrimeclueErr;
 use crate::exec::scored_tree::ScoredTree;
 use crate::serialization::{Deserializable, Serializable, Serializator};
@@ -73,8 +73,8 @@ impl Classifier {
         &self.classes
     }
 
-    pub fn data_size(&self) -> &Size {
-        self.trees[0].data_size()
+    pub fn input_shape(&self) -> &InputShape {
+        self.trees[0].input_shape()
     }
 
     pub fn average_score(&self) -> Option<f32> {
@@ -102,10 +102,9 @@ impl Classifier {
             let values = tree.execute(&data);
             let class_string = self.classes.get(&tree.score().class()).unwrap();
             for (value, response) in values.iter().zip(responses.iter_mut()) {
-                if let Some(guess) = tree.guess(*value) {
-                    if guess {
-                        *response = class_string;
-                    }
+                match tree.guess(*value) {
+                    Some(guess) if guess => *response = class_string,
+                    _ => {}
                 }
             }
         }
@@ -171,7 +170,7 @@ impl Deserializable for Classifier {
 mod test {
     use crate::data::data_set::test::create_simple_data;
     use crate::data::outcome::Class;
-    use crate::data::Size;
+    use crate::data::InputShape;
     use crate::exec::classifier::Classifier;
     use crate::exec::score::Objective::AUC;
     use crate::exec::score::{Score, Threshold};
@@ -185,7 +184,7 @@ mod test {
     fn serialize_classifier() {
         let forbidden_cols = vec![];
         for _ in 0..10 {
-            let (d1, d2, _) = create_simple_data().shuffle().into_views_split();
+            let (d1, d2, _) = create_simple_data().shuffle().into_3_views_split();
             let mut training_group =
                 TrainingGroup::new(d1, d2, AUC, 5, &forbidden_cols).unwrap();
             loop {
@@ -210,7 +209,7 @@ mod test {
         let r = Classifier::new(classes, vec![]);
         assert!(r.is_err());
 
-        let t = Tree::new(&Size::new(1, 1), 3, &vec![], 0.5, 0.5);
+        let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
         let classes = HashMap::new();
         let r = Classifier::new(
             classes,
@@ -223,7 +222,7 @@ mod test {
     fn invalid_class_count() {
         let mut trees = vec![];
         for i in 0..3 {
-            let t = Tree::new(&Size::new(1, 1), 3, &vec![], 0.5, 0.5);
+            let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
                 Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),
@@ -237,7 +236,7 @@ mod test {
 
         let mut trees = vec![];
         for i in 0..2 {
-            let t = Tree::new(&Size::new(1, 1), 3, &vec![], 0.5, 0.5);
+            let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
                 Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),

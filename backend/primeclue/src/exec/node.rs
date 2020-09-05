@@ -17,7 +17,7 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::data::{Data, Size};
+use crate::data::{Data, InputShape};
 use crate::exec::functions::{DoubleArgFunction, MathConst, SingleArgFunction};
 use crate::exec::functions::{MATH_CONSTANTS, ONE_ARG_FUNCTIONS, TWO_ARG_FUNCTIONS};
 use crate::rand::GET_RNG;
@@ -90,8 +90,8 @@ impl Weighted {
         }
     }
 
-    pub fn mutate(&mut self, size: &Size, forbidden_cols: &[usize]) {
-        self.n.mutate(size, forbidden_cols);
+    pub fn mutate(&mut self, input_shape: &InputShape, forbidden_cols: &[usize]) {
+        self.n.mutate(input_shape, forbidden_cols);
     }
 
     pub fn copy_internals(&mut self, n: Weighted) {
@@ -129,7 +129,7 @@ impl Weighted {
 
     pub fn new(
         current_length: usize,
-        size: &Size,
+        input_shape: &InputShape,
         branch_prob: f64,
         max_branch_length: usize,
         forbidden_cols: &[usize],
@@ -137,11 +137,11 @@ impl Weighted {
     ) -> Weighted {
         let terminate = GET_RNG().gen_bool(current_length as f64 / max_branch_length as f64);
         if terminate {
-            Weighted::new_terminating_node(size, forbidden_cols, data_prob)
+            Weighted::new_terminating_node(input_shape, forbidden_cols, data_prob)
         } else {
             Weighted::new_function_node(
                 current_length,
-                size,
+                input_shape,
                 branch_prob,
                 max_branch_length,
                 forbidden_cols,
@@ -152,7 +152,7 @@ impl Weighted {
 
     fn new_function_node(
         current_length: usize,
-        size: &Size,
+        input_shape: &InputShape,
         branch_prob: f64,
         max_branch_length: usize,
         forbidden_cols: &[usize],
@@ -163,7 +163,7 @@ impl Weighted {
         if rng.gen_bool(branch_prob) {
             let wn1 = Weighted::new(
                 current_length,
-                size,
+                input_shape,
                 branch_prob,
                 max_branch_length,
                 forbidden_cols,
@@ -171,7 +171,7 @@ impl Weighted {
             );
             let wn2 = Weighted::new(
                 current_length,
-                size,
+                input_shape,
                 branch_prob,
                 max_branch_length,
                 forbidden_cols,
@@ -184,7 +184,7 @@ impl Weighted {
         } else {
             let wn = Weighted::new(
                 current_length,
-                size,
+                input_shape,
                 branch_prob,
                 max_branch_length,
                 forbidden_cols,
@@ -196,9 +196,9 @@ impl Weighted {
         }
     }
 
-    fn new_terminating_node(size: &Size, forbidden_cols: &[usize], data_prob: f64) -> Weighted {
+    fn new_terminating_node(input_shape: &InputShape, forbidden_cols: &[usize], data_prob: f64) -> Weighted {
         if GET_RNG().gen_bool(data_prob) {
-            Weighted::new_data_value_node(size, forbidden_cols)
+            Weighted::new_data_value_node(input_shape, forbidden_cols)
         } else {
             let n = Node::MathConstant(MATH_CONSTANTS.choose(&mut GET_RNG()).unwrap());
             let w = Weight::generate();
@@ -206,8 +206,8 @@ impl Weighted {
         }
     }
 
-    fn new_data_value_node(size: &Size, forbidden_cols: &[usize]) -> Weighted {
-        let (row, column) = size.random_row_column(forbidden_cols);
+    fn new_data_value_node(input_shape: &InputShape, forbidden_cols: &[usize]) -> Weighted {
+        let (row, column) = input_shape.random_row_column(forbidden_cols);
         let n = if GET_RNG().gen_bool(0.95) {
             Node::DataValue(row, column)
         } else {
@@ -361,7 +361,7 @@ impl Node {
         }
     }
 
-    pub fn mutate(&mut self, data_size: &Size, forbidden_cols: &[usize]) {
+    pub fn mutate(&mut self, input_shape: &InputShape, forbidden_cols: &[usize]) {
         let mut rng = GET_RNG();
         match self {
             Node::SingleArgFunction(ref mut f, _) => {
@@ -373,7 +373,7 @@ impl Node {
             Node::MathConstant(ref mut c) => *c = &MATH_CONSTANTS.choose(&mut rng).unwrap(),
             Node::DataValue(ref mut row, ref mut column)
             | Node::StdDev(ref mut row, ref mut column) => {
-                let (r, c) = data_size.random_row_column(forbidden_cols);
+                let (r, c) = input_shape.random_row_column(forbidden_cols);
                 *row = r;
                 *column = c;
             }

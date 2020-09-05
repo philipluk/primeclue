@@ -19,7 +19,7 @@
 
 use crate::data::data_set::DataView;
 use crate::data::outcome::Class;
-use crate::data::Size;
+use crate::data::InputShape;
 use crate::exec::score::{Objective, Score};
 use crate::exec::scored_tree::ScoredTree;
 use crate::exec::tree::Tree;
@@ -46,7 +46,7 @@ pub struct ClassTraining {
     objective: Objective,
     size: usize,
     node_limit: usize,
-    data_size: Size,
+    input_shape: InputShape,
     forbidden_cols: Vec<usize>,
     best_tree: Option<ScoredTree>,
     class: Class,
@@ -63,7 +63,7 @@ impl ClassTraining {
     #[must_use]
     pub fn new(
         size: usize,
-        data_size: &Size,
+        input_shape: &InputShape,
         forbidden_cols: Vec<usize>,
         objective: Objective,
         class: Class,
@@ -73,7 +73,7 @@ impl ClassTraining {
             next_id: GroupId(1),
             wasted_generations: 0,
             size,
-            data_size: *data_size,
+            input_shape: *input_shape,
             forbidden_cols,
             groups,
             node_limit: 5_000_000,
@@ -222,7 +222,7 @@ impl Debug for ClassGroup {
 impl ClassGroup {
     fn create_random(
         group_size: usize,
-        data_size: &Size,
+        input_shape: &InputShape,
         id: GroupId,
         forbidden_cols: &[usize],
     ) -> Self {
@@ -231,7 +231,7 @@ impl ClassGroup {
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
         let tree =
-            Tree::new(data_size, max_branch_length, forbidden_cols, branch_prob, data_prob);
+            Tree::new(input_shape, max_branch_length, forbidden_cols, branch_prob, data_prob);
         ClassGroup::create_from_tree(group_size, id, tree, forbidden_cols)
     }
 
@@ -315,7 +315,7 @@ fn generate_group(
         if rng.gen_bool(random_chance) {
             return ClassGroup::create_random(
                 training.size,
-                &training.data_size,
+                &training.input_shape,
                 id,
                 forbidden_cols,
             );

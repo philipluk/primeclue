@@ -22,7 +22,7 @@ use crate::data::build_numbers_row;
 use crate::executor::{Status, StatusCallback, Termination};
 use crate::user::{read_files, Settings, CLASSIFIERS_DIR};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
-use primeclue::data::{Input, Outcome, Point, Size};
+use primeclue::data::{Input, Outcome, Point, InputShape};
 use primeclue::error::PrimeclueErr;
 use primeclue::exec::classifier::{AppliedScore, Classifier};
 use primeclue::exec::score::Objective;
@@ -90,9 +90,9 @@ fn start_training(
     terminator: &Receiver<Termination>,
 ) -> Result<String, PrimeclueErr> {
     let (training_data, verification_data, test_data) = if request.shuffle_data {
-        data_set.shuffle().into_views_split()
+        data_set.shuffle().into_3_views_split()
     } else {
-        data_set.into_views_split()
+        data_set.into_3_views_split()
     };
     print_cost_range(&training_data, &test_data);
     let forbidden_cols = parse_forbidden_columns(&request.forbidden_columns)?;
@@ -199,7 +199,7 @@ impl ClassifyRequest {
         let classifier = self.read_classifier()?;
         let data_raw = data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
-        check_size(&numbers, classifier.data_size())?;
+        check_size(&numbers, classifier.input_shape())?;
         let responses = classify_all(&numbers, &classifier);
         let mut classification = Vec::with_capacity(data_raw.len());
         for (response, mut row) in responses.into_iter().zip(data_raw) {
@@ -238,38 +238,38 @@ fn parse_data(raw: &[Vec<&str>], use_columns: &[bool]) -> Result<Vec<Vec<f32>>, 
     Ok(values)
 }
 
-fn check_size(data: &[Vec<f32>], size: &Size) -> Result<(), PrimeclueErr> {
-    if data.len() < size.rows() {
+fn check_size(data: &[Vec<f32>], input_shape: &InputShape) -> Result<(), PrimeclueErr> {
+    if data.len() < input_shape.rows() {
         PrimeclueErr::result(format!(
             "Invalid data size: not enough rows: is: {}, must be at least: {}",
             data.len(),
-            size.rows()
+            input_shape.rows()
         ))
-    } else if data[0].len() == size.columns() {
+    } else if data[0].len() == input_shape.columns() {
         Ok(())
     } else {
         PrimeclueErr::result(format!(
             "Invalid data size: wrong number of columns: is: {}, must be: {}",
             data[0].len(),
-            size.columns()
+            input_shape.columns()
         ))
     }
 }
 
 fn classify_all<'a>(numbers: &[Vec<f32>], classifier: &'a Classifier) -> Vec<&'a str> {
     let mut data_set = DataSet::new(classifier.get_classes().clone());
-    for row in 0..=(numbers.len() - classifier.data_size().rows()) {
-        let input_data = build_input_data(numbers, row, classifier.data_size());
+    for row in 0..=(numbers.len() - classifier.input_shape().rows()) {
+        let input_data = build_input_data(numbers, row, classifier.input_shape());
         data_set.add_data_point(Point::new(input_data, Outcome::default())).unwrap();
     }
     let view = data_set.into_view();
     classifier.classify(&view)
 }
 
-fn build_input_data(numbers: &[Vec<f32>], row: usize, size: &Size) -> Input {
+fn build_input_data(numbers: &[Vec<f32>], row: usize, input_shape: &InputShape) -> Input {
     let mut data = vec![];
-    let start_column = numbers[0].len() - size.columns();
-    for r in 0..size.rows() {
+    let start_column = numbers[0].len() - input_shape.columns();
+    for r in 0..input_shape.rows() {
         let numbers_row = &numbers[row + r];
         let last_columns = numbers_row.iter().skip(start_column).copied().collect();
         data.push(last_columns);
