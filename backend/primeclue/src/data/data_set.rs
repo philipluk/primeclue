@@ -18,7 +18,7 @@
 */
 
 use crate::data::outcome::Class;
-use crate::data::{Data, Input, Outcome, InputShape};
+use crate::data::{Data, Input, InputShape, Outcome};
 use crate::error::PrimeclueErr;
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
@@ -212,6 +212,33 @@ impl DataSet {
     pub fn into_3_views_split(self) -> (DataView, DataView, DataView) {
         let (s1, s2, s3) = self.split3();
         (s1.into_view(), s2.into_view(), s3.into_view())
+    }
+
+    pub fn split_with_test_data_marker<P>(self, predicate: P) -> (DataView, DataView, DataView)
+    where
+        P: Fn(&Point) -> bool,
+    {
+        use rand::Rng;
+        let mut training_set = DataSet::new(self.classes.clone());
+        let mut verification_set = DataSet::new(self.classes.clone());
+        let mut testing_set = DataSet::new(self.classes.clone());
+        let mut rng = GET_RNG();
+        for point in self.points {
+            if predicate(&point) {
+                testing_set.add_data_point(point).unwrap();
+            } else if rng.gen_bool(0.5) {
+                training_set.add_data_point(point).unwrap();
+            } else {
+                verification_set.add_data_point(point).unwrap();
+            }
+        }
+        println!(
+            "Splitting data with marker. Sets lengths: {} {} {}",
+            training_set.len(),
+            verification_set.len(),
+            testing_set.len()
+        );
+        (training_set.into_view(), verification_set.into_view(), testing_set.into_view())
     }
 
     /// Splits [`DataSet`] into two equal [`DataView`].
@@ -427,7 +454,7 @@ pub(crate) mod test {
 
     #[test]
     fn test_shuffling() {
-        let data = create_simple_data();
+        let data = create_simple_data(100);
         let (tr, _, tst) = data.shuffle().into_3_views_split();
         let tr_vec = tr.cells.get(0, 0);
         let tst_vec = tst.cells.get(0, 0);
@@ -441,7 +468,7 @@ pub(crate) mod test {
 
     #[test]
     fn test_no_shuffle() {
-        let data = create_simple_data();
+        let data = create_simple_data(100);
         let (tr, _, tst) = data.into_3_views_split();
         let tr_vec = tr.cells.get(0, 0);
         let tst_vec = tst.cells.get(0, 0);
@@ -462,15 +489,15 @@ pub(crate) mod test {
         assert_eq!(data.cost_range(), (-27.0, 18.0))
     }
 
-    pub(crate) fn create_simple_data() -> DataSet {
+    pub(crate) fn create_simple_data(count: usize) -> DataSet {
         let mut classes = HashMap::new();
         classes.insert(Class::new(0), "FALSE".to_owned());
         classes.insert(Class::new(1), "TRUE".to_owned());
         let mut data = DataSet::new(classes);
         let mut rng = GET_RNG();
-        for i in 0..99 {
+        for i in 0..count {
             let a = i as f32;
-            let b = rng.gen_range(0.0, 100.0);
+            let b = rng.gen_range(0.0, count as f32);
             data.add_data_point(Point::new(
                 Input::from_vector(vec![vec![a, b]]).unwrap(),
                 if a > b {

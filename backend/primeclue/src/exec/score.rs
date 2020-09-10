@@ -217,7 +217,7 @@ pub fn calc_score(
 }
 
 #[must_use]
-fn calculate_auc(outcomes: &[(f32, Outcome)], class: Class) -> f32 {
+pub fn calculate_auc(outcomes: &[(f32, Outcome)], class: Class) -> f32 {
     let mut incorrect_count = 0_usize;
     let mut correct_count = 0_usize;
     let mut total_incorrect = 0_usize;
@@ -254,7 +254,7 @@ fn calculate_cost(threshold: Threshold, outcomes: &[(f32, Outcome)], class: Clas
     let mut cost = 0.0;
     for (guess, outcome) in outcomes.iter() {
         if let Some(b) = threshold.bool(*guess) {
-            cost += outcome.calculate_score(b, class);
+            cost += outcome.calculate_cost(b, class);
         }
     }
     cost
@@ -278,7 +278,7 @@ fn cost_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
     let mut false_list = Vec::with_capacity(outcomes.len());
     let mut false_cost = 0.0;
     for (guess, outcome) in outcomes {
-        let false_reward = outcome.calculate_score(false, class);
+        let false_reward = outcome.calculate_cost(false, class);
         false_list.push((*guess, *outcome, false_cost));
         false_cost += false_reward;
     }
@@ -286,7 +286,7 @@ fn cost_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
     let mut true_cost = 0.0;
     let mut cost_list = Vec::with_capacity(false_list.len());
     for (guess, outcome, false_reward) in false_list {
-        let true_reward = outcome.calculate_score(true, class);
+        let true_reward = outcome.calculate_cost(true, class);
         true_cost += true_reward;
         cost_list.push((guess, outcome, false_reward + true_cost));
     }

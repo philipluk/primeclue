@@ -33,6 +33,7 @@ pub struct TrainingGroup {
     training_data: DataView,
     verification_data: DataView,
     classes: Vec<ClassTraining>,
+    objective: Objective,
     thread_pool: ThreadPool,
 }
 
@@ -71,6 +72,7 @@ impl TrainingGroup {
             .build()
             .map_err(|e| format!("Unable to build thread pool: {:?}", e))?;
         Ok(TrainingGroup {
+            objective,
             generation: 0,
             training_data,
             verification_data,
@@ -134,11 +136,10 @@ impl TrainingGroup {
             node_count += best_tree.node_count();
             training_score += class.training_score()?;
         }
-        Some(Stats {
-            generation: self.generation,
-            node_count,
-            training_score: training_score / self.classes.len() as f32,
-        })
+        if self.objective != Objective::Cost {
+            training_score /= self.classes.len() as f32;
+        }
+        Some(Stats { generation: self.generation, node_count, training_score })
     }
 
     /// Get [`Classifier`] after training. [`Classifier`] can later be used for
@@ -183,7 +184,7 @@ mod test {
 
     #[test]
     fn test_generation() {
-        let data = create_simple_data();
+        let data = create_simple_data(100);
         let (training, verification, _) = data.shuffle().into_3_views_split();
         let mut training_group =
             TrainingGroup::new(training, verification, AUC, 3, &Vec::new()).unwrap();

@@ -56,8 +56,14 @@ impl Tree {
         branch_prob: f64,
         data_prob: f64,
     ) -> Tree {
-        let node =
-            Weighted::new(0, input_shape, branch_prob, max_branch_length, forbidden_cols, data_prob);
+        let node = Weighted::new(
+            0,
+            input_shape,
+            branch_prob,
+            max_branch_length,
+            forbidden_cols,
+            data_prob,
+        );
         let node_count = node.node_count();
         Tree { node, input_shape: *input_shape, node_count }
     }
@@ -168,7 +174,6 @@ pub(crate) mod test {
         let w5 = Weighted::from(n5);
         let n6 = Node::DoubleArgFunction(&TWO_ARG_FUNCTIONS[3], w4, w5);
         let node_count = n6.node_count();
-
         Tree { node: Weighted::from(n6), input_shape: InputShape::new(1, 1), node_count }
     }
 

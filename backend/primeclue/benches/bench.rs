@@ -20,7 +20,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use primeclue::data::data_set::DataSet;
 use primeclue::data::outcome::Class;
-use primeclue::data::{Input, Outcome, Point, InputShape};
+use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::exec::class_training::ClassTraining;
 use primeclue::exec::score::Objective::{Cost, AUC};
 use primeclue::exec::training_group::TrainingGroup;
@@ -36,8 +36,13 @@ fn select_node(c: &mut Criterion) {
         let max_branch_length = rng.gen_range(2, 30);
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree =
-            Tree::new(&InputShape::new(1, 10), max_branch_length, &vec![], branch_prob, data_prob);
+        let tree = Tree::new(
+            &InputShape::new(1, 10),
+            max_branch_length,
+            &vec![],
+            branch_prob,
+            data_prob,
+        );
         trees.push(tree)
     }
 

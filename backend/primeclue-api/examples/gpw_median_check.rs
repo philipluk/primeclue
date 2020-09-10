@@ -27,7 +27,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 // Usage:
-// cargo run --release --example median_check </path/to/imported/data> <minutes>
+// cargo run --release --example gpw_median_check </path/to/imported/data> <minutes>
 fn main() -> Result<(), PrimeclueErr> {
     // Get path and time from command line args
     let path = env::args()
@@ -67,7 +67,10 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.
-    let (training_data, verification_data, test_data) = data.shuffle().into_3_views_split();
+    // Here data is split with "marker" to decide which points go to testing set. Data is
+    // imported with 'date' column which is used to recognize points in years 2015 and later.
+    let (training_data, verification_data, test_data) =
+        data.split_with_test_data_marker(|p| p.data().0.get(0, 0) > 2015_00_00 as f32);
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
     let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
@@ -88,6 +91,12 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
 
     // Get classifier's score on unseen data
     classifier.execute_for_auc(&test_data)
+
+    // Use the following code to get cost per each "true" label predicted
+    // let predictions = classifier.classify(&test_data);
+    // let true_count = predictions.iter().filter(|&&p| p == "true").count();
+    // let points = classifier.applied_score(&test_data)?.cost;
+    // Some(points / true_count as f32)
 }
 
 fn median(values: &mut [f32]) -> f32 {

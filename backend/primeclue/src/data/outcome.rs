@@ -72,12 +72,15 @@ impl Outcome {
         Outcome { class, reward, penalty }
     }
 
-    #[must_use]
-    pub fn calculate_score(&self, guess: bool, class: Class) -> f32 {
-        if (self.class == class && guess) || (self.class != class && !guess) {
-            self.reward
+    pub fn calculate_cost(&self, guess: bool, class: Class) -> f32 {
+        if class == self.class {
+            if guess {
+                self.reward
+            } else {
+                self.penalty
+            }
         } else {
-            self.penalty
+            0.0
         }
     }
 
@@ -151,14 +154,14 @@ mod test {
         let outcome_false = Outcome::new(class_false, reward, penalty);
         let guess_true = true;
         let guess_false = false;
-        assert_eq!(outcome_true.calculate_score(guess_true, class_true), reward);
-        assert_eq!(outcome_true.calculate_score(guess_true, class_false), penalty);
-        assert_eq!(outcome_true.calculate_score(guess_false, class_true), penalty);
-        assert_eq!(outcome_true.calculate_score(guess_false, class_false), reward);
+        assert_eq!(outcome_true.calculate_cost(guess_true, class_true), reward);
+        assert_eq!(outcome_true.calculate_cost(guess_false, class_true), penalty);
+        assert_eq!(outcome_true.calculate_cost(guess_true, class_false), 0.0);
+        assert_eq!(outcome_true.calculate_cost(guess_false, class_false), 0.0);
 
-        assert_eq!(outcome_false.calculate_score(guess_true, class_true), penalty);
-        assert_eq!(outcome_false.calculate_score(guess_true, class_false), reward);
-        assert_eq!(outcome_false.calculate_score(guess_false, class_true), reward);
-        assert_eq!(outcome_false.calculate_score(guess_false, class_false), penalty);
+        assert_eq!(outcome_false.calculate_cost(guess_true, class_false), reward);
+        assert_eq!(outcome_false.calculate_cost(guess_false, class_false), penalty);
+        assert_eq!(outcome_false.calculate_cost(guess_true, class_true), 0.0);
+        assert_eq!(outcome_false.calculate_cost(guess_false, class_true), 0.0);
     }
 }

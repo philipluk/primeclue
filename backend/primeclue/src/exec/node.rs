@@ -196,7 +196,11 @@ impl Weighted {
         }
     }
 
-    fn new_terminating_node(input_shape: &InputShape, forbidden_cols: &[usize], data_prob: f64) -> Weighted {
+    fn new_terminating_node(
+        input_shape: &InputShape,
+        forbidden_cols: &[usize],
+        data_prob: f64,
+    ) -> Weighted {
         if GET_RNG().gen_bool(data_prob) {
             Weighted::new_data_value_node(input_shape, forbidden_cols)
         } else {

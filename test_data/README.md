@@ -6,7 +6,7 @@ Testing procedure:
 1. Split data randomly into training and testing sets.
 2. Train classifiers on training data for 10 minutes.
 3. Take the best classifier and note its result on test data.
-4. Repeat above steps 19 times.
+4. Repeat above steps 20 times.
 5. Record median result on test data. 
 
 <h2>Tested data</h2>
@@ -24,7 +24,7 @@ Crime rate | 0.89
 Heart disease | 0.8                                    
 Hepatitis deaths | 0.79                   
 Online news popularity | 1.0     
-Stocks | 0.71 
+Stocks | 0.83 
 Fizz Buzz | 0.98    
 Breast cancer with mistake: | 1.0
 Random | 0.50
@@ -78,9 +78,10 @@ http://archive.ics.uci.edu/ml/datasets/Online+News+Popularity <br>
 K. Fernandes, P. Vinagre and P. Cortez. A Proactive Intelligent Decision Support System for Predicting the Popularity of Online News. Proceedings of the 17th EPIA 2015 - Portuguese Conference on Artificial Intelligence, September, Coimbra, Portugal.
         
 <h3>Stocks</h3>
-Predicting whether a stock will double in price within next year. Data collected from Polish stock market. Each line represents features
-of a single stock and WIG (Polish broad market index) at the beginning of a year. Features include things like PE, PBV,
-Williams R indicator and past price changes. The objective was to predict whether the stock's price will at least double during the year.     
+This is data named `gpw_100_4` in `gpw` directory. 
+Predicting whether a stock's price will double within next four months. Data collected from Polish stock market. Each line represents features
+of a single stock at the beginning of a year. Features include things like PE, PBV, Williams R indicator and past price changes.
+Training set contained dates before 2015, and testing set after that date. Executed by `gpw_median_check.rs` example.      
           
 <h3>Fizz buzz</h3>
 Variation of <a href="https://en.wikipedia.org/wiki/Fizz_buzz">popular game</a>. Objective was to predict one of four classes:<br>

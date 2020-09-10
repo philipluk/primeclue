@@ -22,7 +22,7 @@ use crate::data::build_numbers_row;
 use crate::executor::{Status, StatusCallback, Termination};
 use crate::user::{read_files, Settings, CLASSIFIERS_DIR};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
-use primeclue::data::{Input, Outcome, Point, InputShape};
+use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::error::PrimeclueErr;
 use primeclue::exec::classifier::{AppliedScore, Classifier};
 use primeclue::exec::score::Objective;
@@ -92,7 +92,8 @@ fn start_training(
     if request.shuffle_data {
         data_set = data_set.shuffle();
     }
-    let (training_data, verification_data, test_data) = split_into_sets(data_set, request.keep_unseen_data);
+    let (training_data, verification_data, test_data) =
+        split_into_sets(data_set, request.keep_unseen_data);
     print_cost_range(&training_data, &test_data);
     let forbidden_cols = parse_forbidden_columns(&request.forbidden_columns)?;
     let dst_dir = create_classifier_dir(&request)?;
@@ -116,7 +117,7 @@ fn start_training(
         if let Some(stats) = training.stats() {
             if let Ok(classifier) = training.classifier() {
                 if let Some(applied_score) = classifier.applied_score(&test_data) {
-                    if let Some(test_score) = classifier.execute_for_score(&test_data) {
+                    if let Some(test_score) = classifier.execute_for_auc(&test_data) {
                         let status = TrainingStatus { stats, applied_score, test_score };
                         status_callback(Status::Progress(
                             0.0,

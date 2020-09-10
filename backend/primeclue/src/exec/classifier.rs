@@ -21,6 +21,7 @@ use crate::data::data_set::DataView;
 use crate::data::outcome::Class;
 use crate::data::InputShape;
 use crate::error::PrimeclueErr;
+use crate::exec::score::calculate_auc;
 use crate::exec::scored_tree::ScoredTree;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 use serde::export::Formatter;
@@ -32,6 +33,7 @@ use std::fmt::Display;
 
 #[derive(Copy, Clone, Debug, Serialize)]
 pub struct AppliedScore {
+    // TODO add auc
     pub accuracy: f32,
     pub cost: f32,
 }
@@ -111,19 +113,14 @@ impl Classifier {
         responses
     }
 
-    /// Execute on [`DataView`] to get a score.
-    /// This is average score from all classes weighted by their training score.
+    /// Execute on [`DataView`] to get an average AUC score from all classes.
     /// Usually done on unseen data to present value to a user.
-    pub fn execute_for_score(&self, data: &DataView) -> Option<f32> {
+    pub fn execute_for_auc(&self, data: &DataView) -> Option<f32> {
         let mut sum_score = 0.0;
-        let mut sum_weight = 0.0;
         for tree in &self.trees {
-            let score = tree.execute_for_score(&data)?.value();
-            let weight = tree.score().value();
-            sum_score += score * weight;
-            sum_weight += weight;
+            sum_score += Classifier::calc_tree_auc(tree, data)?;
         }
-        Some(sum_score / sum_weight)
+        Some(sum_score / self.trees.len() as f32)
     }
 
     pub fn applied_score(&self, data: &DataView) -> Option<AppliedScore> {
@@ -148,6 +145,14 @@ impl Classifier {
         let accuracy = 100.0 * correct as f32 / total as f32;
         let cost = reward + penalty;
         Some(AppliedScore { accuracy, cost })
+    }
+
+    fn calc_tree_auc(tree: &ScoredTree, data: &DataView) -> Option<f32> {
+        let values = tree.execute(data);
+        let mut outcomes =
+            values.into_iter().zip(data.outcomes().iter().copied()).collect::<Vec<_>>();
+        outcomes.sort_unstable_by(|(v1, _), (v2, _)| v1.partial_cmp(v2).unwrap());
+        Some(calculate_auc(&outcomes, tree.score().class()))
     }
 }
 
@@ -184,7 +189,7 @@ mod test {
     fn serialize_classifier() {
         let forbidden_cols = vec![];
         for _ in 0..10 {
-            let (d1, d2, _) = create_simple_data().shuffle().into_3_views_split();
+            let (d1, d2, _) = create_simple_data(100).shuffle().into_3_views_split();
             let mut training_group =
                 TrainingGroup::new(d1, d2, AUC, 5, &forbidden_cols).unwrap();
             loop {
@@ -249,4 +254,5 @@ mod test {
         let r = Classifier::new(classes, trees);
         assert!(r.is_err());
     }
+
 }
