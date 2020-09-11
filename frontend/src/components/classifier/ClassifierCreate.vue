@@ -147,10 +147,6 @@
         <el-table-column
             label="Unseen data">
           <el-table-column
-              prop="test_score"
-              label="Test score"
-              resizable="true"/>
-          <el-table-column
               prop="applied_score"
               label="Applied score"
               resizable="true"/>
@@ -160,7 +156,8 @@
   </div>
 </template>
 <script>
-import {http} from "../../http";
+
+import {http} from "@/http";
 import {date_str} from "../basic/DateString";
 import {MessageBox} from 'element-ui';
 import ulog from 'ulog'
@@ -212,8 +209,7 @@ export default {
           if (this.progress_data.length > 0 && this.progress_data[this.progress_data.length - 1].generation === tick.stats.generation) {
             return;
           }
-          let applied_score = `${tick.applied_score.accuracy.toFixed(1)}% / ${tick.applied_score.cost.toFixed(1)} Cost`;
-          let test_score = `${tick.test_score.toFixed(2)}`;
+          let applied_score = `${tick.applied_score.auc.toFixed(2)} AUC / ${tick.applied_score.accuracy.toFixed(1)}% / ${tick.applied_score.cost.toFixed(1)} Cost`;
           let now = date_str.str();
           let p = {
             time: now,
@@ -221,7 +217,6 @@ export default {
             node_count: tick.stats.node_count,
             training_score: tick.stats.training_score.toFixed(3),
             applied_score: applied_score,
-            test_score: test_score,
           };
           this.progress_data.push(p);
         }

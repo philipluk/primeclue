@@ -57,7 +57,7 @@ pub(crate) fn create(
     status_callback: &StatusCallback,
     terminator: &Receiver<Termination>,
 ) -> Result<String, PrimeclueErr> {
-    let data_set = data(request)?;
+    let data_set = read_data(request)?;
     let result = start_training(request, data_set, status_callback, terminator)?;
     Ok(result)
 }
@@ -118,13 +118,11 @@ fn start_training(
         if let Some(stats) = training.stats() {
             if let Ok(classifier) = training.classifier() {
                 if let Some(applied_score) = classifier.applied_score(&test_data) {
-                    if let Some(test_score) = classifier.execute_for_auc(&test_data) {
-                        let status = TrainingStatus { stats, applied_score, test_score };
-                        status_callback(Status::Progress(
-                            0.0,
-                            serde_json::to_string(&status).unwrap(),
-                        ));
-                    }
+                    let status = TrainingStatus { stats, applied_score };
+                    status_callback(Status::Progress(
+                        0.0,
+                        serde_json::to_string(&status).unwrap(),
+                    ));
                 }
             }
         }
@@ -140,7 +138,6 @@ fn start_training(
 struct TrainingStatus {
     stats: Stats,
     applied_score: AppliedScore,
-    test_score: f32,
 }
 
 fn save(dst_dir: &PathBuf, training: &mut TrainingGroup) -> Result<usize, PrimeclueErr> {
@@ -150,7 +147,7 @@ fn save(dst_dir: &PathBuf, training: &mut TrainingGroup) -> Result<usize, Primec
     s.save(&dst_dir, CLASSIFIER_FILE_NAME).map_err(PrimeclueErr::from)
 }
 
-fn data(request: &CreateRequest) -> Result<DataSet, PrimeclueErr> {
+fn read_data(request: &CreateRequest) -> Result<DataSet, PrimeclueErr> {
     let settings = Settings::new()?;
     let src_data_dir = settings.data_dir().join(&request.data_name);
     let mut dsr = DataSet::read_from_disk(&src_data_dir)?;
