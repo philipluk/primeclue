@@ -254,5 +254,4 @@ mod test {
         let r = Classifier::new(classes, trees);
         assert!(r.is_err());
     }
-
 }

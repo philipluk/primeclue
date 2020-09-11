@@ -24,6 +24,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 pub const PRIMECLUE_SPACE_SUBSTITUTE: &str = "PRIMECLUE_SPACE_SUBSTITUTE";
+pub const SERIALIZED_FILE_EXT: &str = ".ssd";
 
 #[derive(Default, Debug)]
 pub struct Serializator {

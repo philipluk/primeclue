@@ -6,7 +6,6 @@ run() {
 }
 
 set -e
-run stocks
 run breast_cancer
 run companies
 run credit_card_default

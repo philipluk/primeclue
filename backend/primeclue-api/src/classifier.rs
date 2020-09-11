@@ -27,6 +27,7 @@ use primeclue::error::PrimeclueErr;
 use primeclue::exec::classifier::{AppliedScore, Classifier};
 use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::{Stats, TrainingGroup};
+use primeclue::serialization::serializator::SERIALIZED_FILE_EXT;
 use primeclue::serialization::{Deserializable, Serializable, Serializator};
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -196,28 +197,47 @@ pub(crate) struct ClassifyRequest {
 
 impl ClassifyRequest {
     pub(crate) fn classify(&self) -> Result<String, PrimeclueErr> {
-        let classifier = self.read_classifier()?;
-        let data_raw = data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
+        let classifiers = self.read_classifiers()?;
+        let mut data_raw =
+            data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
-        check_size(&numbers, classifier.input_shape())?;
-        let responses = classify_all(&numbers, &classifier);
+        for classifier in &classifiers {
+            check_size(&numbers, classifier.input_shape())?;
+        }
+        let mut responses_list = vec![];
+        for classifier in &classifiers {
+            let responses = classify_all(&numbers, &classifier);
+            responses_list.push(responses);
+        }
         let mut classification = Vec::with_capacity(data_raw.len());
-        for (response, mut row) in responses.into_iter().zip(data_raw) {
-            row.push(response);
+        for r in 0..data_raw.len() {
+            let row = &mut data_raw[r];
+            for responses in &responses_list {
+                let response = responses[r];
+                row.push(response);
+            }
             let line = row.join(self.separator.as_str());
             classification.push(line);
         }
         Ok(classification.join("\r\n"))
     }
 
-    fn read_classifier(&self) -> Result<Classifier, PrimeclueErr> {
+    fn read_classifiers(&self) -> Result<Vec<Classifier>, PrimeclueErr> {
         let settings = Settings::new()?;
-        let path = settings
-            .base_dir()
-            .join(CLASSIFIERS_DIR)
-            .join(&self.classifier_name)
-            .join(CLASSIFIER_FILE_NAME);
-        Ok(Classifier::deserialize(&mut Serializator::load(&path)?)?)
+        let mut classifiers = vec![];
+        let path = settings.base_dir().join(CLASSIFIERS_DIR).join(&self.classifier_name);
+        for entry in fs::read_dir(&path)? {
+            let entry = entry?;
+            if entry.file_name().to_str().unwrap().ends_with(SERIALIZED_FILE_EXT) {
+                classifiers
+                    .push(Classifier::deserialize(&mut Serializator::load(&entry.path())?)?);
+            }
+        }
+        if classifiers.is_empty() {
+            PrimeclueErr::result(format!("Unable to find serialized object in {:?}", path))
+        } else {
+            Ok(classifiers)
+        }
     }
 }
 
