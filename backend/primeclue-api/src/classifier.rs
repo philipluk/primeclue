@@ -198,14 +198,8 @@ impl ClassifyRequest {
         let mut data_raw =
             data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
-        for classifier in &classifiers {
-            check_size(&numbers, classifier.input_shape())?;
-        }
-        let mut responses_list = vec![];
-        for classifier in &classifiers {
-            let responses = classify_all(&numbers, &classifier);
-            responses_list.push(responses);
-        }
+        ClassifyRequest::validate_input_shape(&classifiers, &numbers)?;
+        let responses_list = ClassifyRequest::build_responses_list(&classifiers, &numbers);
         let mut classification = Vec::with_capacity(data_raw.len());
         for r in 0..data_raw.len() {
             let row = &mut data_raw[r];
@@ -217,6 +211,22 @@ impl ClassifyRequest {
             classification.push(line);
         }
         Ok(classification.join("\r\n"))
+    }
+
+    fn build_responses_list<'a>(classifiers: &'a Vec<Classifier>, numbers: &Vec<Vec<f32>>) -> Vec<Vec<&'a str>> {
+        let mut responses_list = vec![];
+        for classifier in classifiers {
+            let responses = classify_all(&numbers, &classifier);
+            responses_list.push(responses);
+        }
+        responses_list
+    }
+
+    fn validate_input_shape(classifiers: &[Classifier], numbers: &[Vec<f32>]) -> Result<(), PrimeclueErr>{
+        for classifier in classifiers {
+            check_size(&numbers, classifier.input_shape())?;
+        }
+        Ok(())
     }
 
     fn read_classifiers(&self) -> Result<Vec<Classifier>, PrimeclueErr> {
