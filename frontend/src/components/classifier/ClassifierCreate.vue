@@ -147,8 +147,16 @@
         <el-table-column
             label="Unseen data">
           <el-table-column
-              prop="applied_score"
-              label="Applied score"
+            prop="test_auc"
+            label="AUC"
+            resizable="true"/>
+          <el-table-column
+              prop="test_accuracy"
+              label="%"
+              resizable="true"/>
+          <el-table-column
+              prop="test_cost"
+              label="Cost"
               resizable="true"/>
         </el-table-column>
       </el-table-column>
@@ -209,14 +217,15 @@ export default {
           if (this.progress_data.length > 0 && this.progress_data[this.progress_data.length - 1].generation === tick.stats.generation) {
             return;
           }
-          let applied_score = `${tick.applied_score.auc.toFixed(2)} AUC / ${tick.applied_score.accuracy.toFixed(1)}% / ${tick.applied_score.cost.toFixed(1)} Cost`;
           let now = date_str.str();
           let p = {
             time: now,
             generation: tick.stats.generation,
             node_count: tick.stats.node_count,
             training_score: tick.stats.training_score.toFixed(3),
-            applied_score: applied_score,
+            test_auc: tick.applied_score.auc.toFixed(2),
+            test_accuracy: tick.applied_score.accuracy.toFixed(1),
+            test_cost: tick.applied_score.cost.toFixed(1)
           };
           this.progress_data.push(p);
         }
