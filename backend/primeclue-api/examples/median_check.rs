@@ -87,7 +87,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     let classifier = training.classifier().ok()?;
 
     // Get classifier's score on unseen data
-    Some(classifier.applied_score(&test_data)?.auc)
+    Some(classifier.score(&test_data)?.auc)
 }
 
 fn median(values: &mut [f32]) -> f32 {

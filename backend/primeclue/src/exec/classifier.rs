@@ -31,15 +31,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
 
-// TODO change name to TestScore
 #[derive(Copy, Clone, Debug, Serialize)]
-pub struct AppliedScore {
+pub struct ClassifierScore {
     pub auc: f32,
     pub accuracy: f32,
     pub cost: f32,
 }
 
-impl Display for AppliedScore {
+impl Display for ClassifierScore {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:.2} AUC / {:.1}% / {:.1} cost", self.auc, self.accuracy, self.cost)
     }
@@ -122,7 +121,7 @@ impl Classifier {
         Some(sum_score / self.trees.len() as f32)
     }
 
-    pub fn applied_score(&self, data: &DataView) -> Option<AppliedScore> {
+    pub fn score(&self, data: &DataView) -> Option<ClassifierScore> {
         let auc = self.execute_for_auc(data)?;
         let predictions = self.classify(data);
         let mut correct = 0;
@@ -144,7 +143,7 @@ impl Classifier {
         }
         let accuracy = 100.0 * correct as f32 / total as f32;
         let cost = reward + penalty;
-        Some(AppliedScore { auc, accuracy, cost })
+        Some(ClassifierScore { auc, accuracy, cost })
     }
 
     fn calc_tree_auc(tree: &ScoredTree, data: &DataView) -> Option<f32> {

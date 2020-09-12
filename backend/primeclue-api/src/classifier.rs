@@ -24,7 +24,7 @@ use crate::user::{read_files, Settings, CLASSIFIERS_DIR};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
 use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::error::PrimeclueErr;
-use primeclue::exec::classifier::{AppliedScore, Classifier};
+use primeclue::exec::classifier::{ClassifierScore, Classifier};
 use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::{Stats, TrainingGroup};
 use primeclue::serialization::serializator::SERIALIZED_FILE_EXT;
@@ -117,8 +117,8 @@ fn start_training(
         training.next_generation();
         if let Some(stats) = training.stats() {
             if let Ok(classifier) = training.classifier() {
-                if let Some(applied_score) = classifier.applied_score(&test_data) {
-                    let status = TrainingStatus { stats, applied_score };
+                if let Some(classifier_score) = classifier.score(&test_data) {
+                    let status = TrainingStatus { stats, classifier_score };
                     status_callback(Status::Progress(
                         0.0,
                         serde_json::to_string(&status).unwrap(),
@@ -137,7 +137,7 @@ fn start_training(
 #[derive(Serialize)]
 struct TrainingStatus {
     stats: Stats,
-    applied_score: AppliedScore,
+    classifier_score: ClassifierScore,
 }
 
 fn save(dst_dir: &PathBuf, training: &mut TrainingGroup) -> Result<usize, PrimeclueErr> {

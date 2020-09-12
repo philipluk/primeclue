@@ -90,12 +90,12 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     let classifier = training.classifier().ok()?;
 
     // Get classifier's score on unseen data
-    Some(classifier.applied_score(&test_data)?.auc)
+    Some(classifier.score(&test_data)?.auc)
 
     // Use the following code to get cost per each "true" label predicted
     // let predictions = classifier.classify(&test_data);
     // let true_count = predictions.iter().filter(|&&p| p == "true").count();
-    // let points = classifier.applied_score(&test_data)?.cost;
+    // let points = classifier.score(&test_data)?.cost;
     // Some(points / true_count as f32)
 }
 

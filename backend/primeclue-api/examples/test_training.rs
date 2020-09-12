@@ -85,7 +85,7 @@ fn training_success(attempt: usize) -> f64 {
     loop {
         training.next_generation();
         if let Ok(classifier) = training.classifier() {
-            if let Some(score) = classifier.applied_score(&test_data) {
+            if let Some(score) = classifier.score(&test_data) {
                 if let Some(stats) = training.stats() {
                     println!(
                         "Testing training #{}, generation: {}, unseen: {}",

@@ -32,7 +32,7 @@ to create nodes with two inputs shifted by n/2. So, for example, with 16 columns
 8 columns for each team) Primeclue would create nodes that compare (subtract?) Data(0, 4) with Data(0, 12).
 
 <h4>Train the worst class only</h4>
-Train only the worst performing class. This could save resources and increase applied score.
+Train only the worst performing class. This could save resources and increase classifier score.
 
 <h4>Load data from a file on server</h4>
 Used when file is too big for a browser to handle.
