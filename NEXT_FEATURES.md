@@ -47,10 +47,6 @@ Receive data from an external source and add to existing data.
 <h4>Read data gradually for training</h4>
 Useful when there is too much data to hold in memory at once. 
 
-<h4>Allow training into an existing classifier</h4>
-In this case there would be more than one classifier under a single name. Their predictions would be somehow showed 
-together.
-
 <h4>Show correlation between training data score and verification data score for best trees</h4>
 This could work as sort of warning that a problem is too hard, and a good score on one set does not correspond to
 a good score on another set. 
