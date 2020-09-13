@@ -24,7 +24,7 @@ use crate::user::{read_files, Settings, CLASSIFIERS_DIR};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
 use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::error::PrimeclueErr;
-use primeclue::exec::classifier::{ClassifierScore, Classifier};
+use primeclue::exec::classifier::{Classifier, ClassifierScore};
 use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::{Stats, TrainingGroup};
 use primeclue::serialization::serializator::SERIALIZED_FILE_EXT;
@@ -213,7 +213,10 @@ impl ClassifyRequest {
         Ok(classification.join("\r\n"))
     }
 
-    fn build_responses_list<'a>(classifiers: &'a Vec<Classifier>, numbers: &Vec<Vec<f32>>) -> Vec<Vec<&'a str>> {
+    fn build_responses_list<'a>(
+        classifiers: &'a [Classifier],
+        numbers: &[Vec<f32>],
+    ) -> Vec<Vec<&'a str>> {
         let mut responses_list = vec![];
         for classifier in classifiers {
             let responses = classify_all(&numbers, &classifier);
@@ -222,7 +225,10 @@ impl ClassifyRequest {
         responses_list
     }
 
-    fn validate_input_shape(classifiers: &[Classifier], numbers: &[Vec<f32>]) -> Result<(), PrimeclueErr>{
+    fn validate_input_shape(
+        classifiers: &[Classifier],
+        numbers: &[Vec<f32>],
+    ) -> Result<(), PrimeclueErr> {
         for classifier in classifiers {
             check_size(&numbers, classifier.input_shape())?;
         }
