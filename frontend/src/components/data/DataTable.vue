@@ -40,7 +40,7 @@
                                          v-model="classColumn" :min="1" :max="columns" @change="unmarkClassColumn"/>
                     </div>
                     <el-button size="small" :disabled="!fileChosen" style="margin-left: 10px; width: 145px" type="large"
-                               @click="getOutcomes">Get outcomes
+                               @click="getClasses">Get classes
                     </el-button>
                 </div>
             </div>
@@ -135,7 +135,7 @@
             },
             redrawTable(content) {
                 this.content = content;
-                this.outcomes = [];
+                this.classes = [];
                 this.rewriteContent();
             },
             firstRowHasNumbers(row) {
@@ -161,8 +161,8 @@
                     for (let c = 0; c < cols.length; c++) {
                         tds += `<td>${cols[c]}</td>`
                     }
-                    if (this.outcomes[i] !== undefined) {
-                        tds += `<td>${this.outcomes[i]}</td>`
+                    if (this.classes[i] !== undefined) {
+                        tds += `<td>${this.classes[i]}</td>`
                     }
                     if (cols.length > 0) {
                         trs += `<tr height="40">${tds}</tr>`;
@@ -185,11 +185,11 @@
                 header += "<th width='20%'>Outcomes</th>";
                 return header + "</tr>";
             },
-            getOutcomes() {
+            getClasses() {
                 let request = this.buildRequest();
-                http.post("/data/outcomes", request)
+                http.post("/data/classes", request)
                     .then(r => {
-                        this.outcomes = r.data.outcomes;
+                        this.classes = r.data.classes;
                         this.rewriteContent();
                     })
                     .catch(e => http.generalErrorHandler(e))
@@ -248,7 +248,7 @@
                 fieldSeparator: ",",
                 dataName: "",
                 table: "",
-                outcomes: [],
+                classes: [],
                 rowsPerSet: 1,
                 individualRewardsPenalties: false,
                 rewardColumn: 0,

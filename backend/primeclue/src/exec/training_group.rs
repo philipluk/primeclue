@@ -111,15 +111,15 @@ impl TrainingGroup {
         self.generation += 1;
         let training_data = &self.training_data;
         let verification_data = &self.verification_data;
-        let mut old_classes = replace(&mut self.classes, vec![]);
+        let mut classes = replace(&mut self.classes, vec![]);
         self.thread_pool.scope(|s| {
-            for class in &mut old_classes {
+            for class in &mut classes {
                 s.spawn(move |_| {
                     class.next_generation(training_data, verification_data);
                 })
             }
         });
-        self.classes = old_classes;
+        self.classes = classes;
     }
 
     pub fn generation(&self) -> u32 {

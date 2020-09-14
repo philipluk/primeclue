@@ -40,5 +40,6 @@ extern crate lazy_static;
 pub mod data;
 pub mod error;
 pub mod exec;
+pub mod math;
 pub mod rand;
 pub mod serialization;

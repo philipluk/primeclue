@@ -18,7 +18,7 @@
 */
 
 use crate::classifier::{create, ClassifyRequest, CreateRequest};
-use crate::data::{import, outcomes, OutcomesRequest};
+use crate::data::{classes, import, ClassRequest};
 use crate::executor::{Executor, Job, JobId, Status, Termination};
 use crate::{classifier, data};
 use actix_cors::Cors;
@@ -93,16 +93,16 @@ fn classifier_remove_handler(path: web::Path<String>) -> HttpResponse {
     }
 }
 
-fn data_outcomes_handler(r: web::Json<OutcomesRequest>) -> HttpResponse {
-    match outcomes(&r.into_inner()) {
-        Ok(outcomes) => HttpResponse::Ok().json(outcomes),
+fn data_classes_handler(r: web::Json<ClassRequest>) -> HttpResponse {
+    match classes(&r.into_inner()) {
+        Ok(classes) => HttpResponse::Ok().json(classes),
         Err(error) => HttpResponse::BadRequest().body(format!("Error: {}", error)),
     }
 }
 
 #[allow(clippy::needless_pass_by_value)]
 fn data_import_handler(
-    r: web::Json<OutcomesRequest>,
+    r: web::Json<ClassRequest>,
     data: web::Data<Mutex<Executor>>,
 ) -> HttpResponse {
     let mut executor = data.lock().unwrap();
@@ -143,7 +143,7 @@ pub(crate) fn start_web() -> std::io::Result<()> {
         App::new()
             .wrap(Cors::new())
             .register_data(executor.clone())
-            .route("/data/outcomes", web::to(data_outcomes_handler).method(http::Method::POST)) // TODO refactor to 'classes'
+            .route("/data/classes", web::to(data_classes_handler).method(http::Method::POST))
             .route("/data/import", web::to(data_import_handler).method(http::Method::POST))
             .route("/data/list", web::to(data_list_handler).method(http::Method::GET))
             .route(
@@ -171,7 +171,7 @@ pub(crate) fn start_web() -> std::io::Result<()> {
                 "/job/{id}/terminate",
                 web::to(job_terminate_handler).method(http::Method::PUT),
             )
-            .data(web::Json::<OutcomesRequest>::configure(|cfg| cfg.limit(256 * 1024 * 1024)))
+            .data(web::Json::<ClassRequest>::configure(|cfg| cfg.limit(256 * 1024 * 1024)))
     })
     .bind(SERVER_ADDR)?
     .run()

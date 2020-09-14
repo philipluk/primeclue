@@ -20,6 +20,7 @@
 use crate::data::{Data, InputShape};
 use crate::exec::functions::{DoubleArgFunction, MathConst, SingleArgFunction};
 use crate::exec::functions::{MATH_CONSTANTS, ONE_ARG_FUNCTIONS, TWO_ARG_FUNCTIONS};
+use crate::math::std_dev;
 use crate::rand::GET_RNG;
 use crate::serialization::deserializable::Deserializable;
 use crate::serialization::serializator::Serializator;
@@ -109,22 +110,12 @@ impl Weighted {
         let mut v = match self.n.deref() {
             Node::MathConstant(v) => vec![v.value(); data.get(0, 0).len()],
             Node::DataValue(r, c) => data.get(*r, *c).clone(),
-            Node::StdDev(r, c) => Weighted::std_dev(data, *r, *c),
+            Node::StdDev(r, c) => std_dev(data.get(*r, *c)),
             Node::SingleArgFunction(f, n) => (f.fun)(n.execute(data)),
             Node::DoubleArgFunction(f, n1, n2) => (f.fun)(n1.execute(data), &n2.execute(data)),
         };
         v.iter_mut().for_each(|v| *v = &self.w * *v);
         v
-    }
-
-    fn std_dev(data: &Data<Vec<f32>>, row: usize, column: usize) -> Vec<f32> {
-        // TODO move somewhere else
-        let values = data.get(row, column);
-        let avg = values.iter().sum::<f32>() / values.len() as f32;
-        let st_dev = (values.iter().map(|v| (v - avg).powf(2.0)).sum::<f32>()
-            / (values.len() - 1) as f32)
-            .sqrt();
-        values.iter().map(|v| (v - avg) / st_dev).collect()
     }
 
     pub fn new(

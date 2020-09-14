@@ -21,6 +21,7 @@ use primeclue::data::data_set::DataSet;
 use primeclue::error::PrimeclueErr;
 use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::TrainingGroup;
+use primeclue::math::median;
 use std::env;
 use std::ops::Add;
 use std::path::PathBuf;
@@ -97,14 +98,4 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // let true_count = predictions.iter().filter(|&&p| p == "true").count();
     // let points = classifier.score(&test_data)?.cost;
     // Some(points / true_count as f32)
-}
-
-fn median(values: &mut [f32]) -> f32 {
-    values.sort_by(|v1, v2| v1.partial_cmp(&v2).unwrap());
-    let middle = values.len() / 2;
-    if values.len() % 2 == 0 {
-        (values[middle] + values[middle - 1]) / 2.0
-    } else {
-        values[middle]
-    }
 }

@@ -86,6 +86,33 @@ impl ScoredTree {
     }
 }
 
+impl Serializable for ScoredTree {
+    fn serialize(&self, s: &mut Serializator) {
+        s.add_items(&[&self.score, &self.tree])
+    }
+}
+
+impl Deserializable for ScoredTree {
+    fn deserialize(s: &mut Serializator) -> Result<Self, String>
+    where
+        Self: Sized,
+    {
+        let score = Score::deserialize(s)?;
+        let tree = Tree::deserialize(s)?;
+        Ok(ScoredTree { score, tree })
+    }
+}
+
+impl ScoredTree {
+    pub fn new(tree: Tree, score: Score) -> Self {
+        ScoredTree { score, tree }
+    }
+
+    pub fn execute_for_score(&self, data: &DataView) -> Option<Score> {
+        self.tree.execute_for_score(data, self.score.class(), self.score.objective())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::data::outcome::Class;
@@ -189,32 +216,5 @@ mod test {
         let score = Score::new(AUC, Class::new(2), 0.9, Threshold::new(1.0));
         let scored_tree = ScoredTree::new(tree, score);
         test_serialization(scored_tree);
-    }
-}
-
-impl Serializable for ScoredTree {
-    fn serialize(&self, s: &mut Serializator) {
-        s.add_items(&[&self.score, &self.tree])
-    }
-}
-
-impl Deserializable for ScoredTree {
-    fn deserialize(s: &mut Serializator) -> Result<Self, String>
-    where
-        Self: Sized,
-    {
-        let score = Score::deserialize(s)?;
-        let tree = Tree::deserialize(s)?;
-        Ok(ScoredTree { score, tree })
-    }
-}
-
-impl ScoredTree {
-    pub fn new(tree: Tree, score: Score) -> Self {
-        ScoredTree { score, tree }
-    }
-
-    pub fn execute_for_score(&self, data: &DataView) -> Option<Score> {
-        self.tree.execute_for_score(data, self.score.class(), self.score.objective())
     }
 }

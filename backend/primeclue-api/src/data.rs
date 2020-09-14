@@ -89,7 +89,7 @@ pub(crate) fn list() -> Result<Vec<String>, PrimeclueErr> {
 }
 
 pub(crate) fn import(
-    r: OutcomesRequest,
+    r: ClassRequest,
     status_callback: &StatusCallback,
 ) -> Result<String, PrimeclueErr> {
     let data = build_data_set(&r)?;
@@ -107,7 +107,7 @@ pub(crate) fn import(
 }
 
 #[derive(Deserialize, Debug)]
-pub(crate) struct OutcomesRequest {
+pub(crate) struct ClassRequest {
     content: String,
     expression: String,
     class_column: usize,
@@ -121,7 +121,7 @@ pub(crate) struct OutcomesRequest {
     penalty_column: usize,
 }
 
-impl OutcomesRequest {
+impl ClassRequest {
     fn extract_reward_penalty(&self, row: &[&str]) -> Result<(f32, f32), PrimeclueErr> {
         if self.custom_reward_penalty_columns {
             let reward = row.get(self.reward_column - 1).ok_or_else(|| {
@@ -155,13 +155,11 @@ struct Rewards {
 }
 
 #[derive(Serialize, Debug)]
-pub(crate) struct OutcomesResponse {
-    // TODO refactor to ClassesResponse
-    outcomes: Vec<String>, // TODO refactor to classes, change frontend
+pub(crate) struct ClassResponse {
+    classes: Vec<String>,
 }
 
-//TODO refactor to ClassRequest - change frontend
-pub(crate) fn outcomes(r: &OutcomesRequest) -> Result<OutcomesResponse, PrimeclueErr> {
+pub(crate) fn classes(r: &ClassRequest) -> Result<ClassResponse, PrimeclueErr> {
     let data = split_to_vec(&r.content, &r.separator, r.ignore_first_row);
     let mut classes = Vec::with_capacity(data.len());
     let class_producer = class_producer(r, &data)?;
@@ -172,7 +170,7 @@ pub(crate) fn outcomes(r: &OutcomesRequest) -> Result<OutcomesResponse, Primeclu
         let class = class_producer.class(&data, row)?;
         classes.push(class.map_or(String::new(), |c| c.to_string()))
     }
-    Ok(OutcomesResponse { outcomes: classes })
+    Ok(ClassResponse { classes })
 }
 
 pub(crate) fn split_to_vec<'a>(
@@ -225,10 +223,7 @@ fn build_class_map(
     Ok(classes)
 }
 
-fn class_producer(
-    r: &OutcomesRequest,
-    data: &[Vec<&str>],
-) -> Result<ClassProducer, PrimeclueErr> {
+fn class_producer(r: &ClassRequest, data: &[Vec<&str>]) -> Result<ClassProducer, PrimeclueErr> {
     if !r.expression.is_empty() {
         Ok(ClassProducer::Binary(parse(&r.expression, data)?))
     } else {
@@ -238,7 +233,7 @@ fn class_producer(
     }
 }
 
-fn build_data_set(r: &OutcomesRequest) -> Result<DataSet, PrimeclueErr> {
+fn build_data_set(r: &ClassRequest) -> Result<DataSet, PrimeclueErr> {
     let data = split_to_vec(&r.content, &r.separator, r.ignore_first_row);
     let class_producer = class_producer(&r, &data)?;
     let mut numbers = vec![];
@@ -264,7 +259,7 @@ fn build_data_set(r: &OutcomesRequest) -> Result<DataSet, PrimeclueErr> {
 }
 
 fn build_data_point(
-    r: &OutcomesRequest,
+    r: &ClassRequest,
     numbers: &mut Vec<Vec<f32>>,
     row_num: usize,
     outcome: Class,
