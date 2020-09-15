@@ -2,7 +2,7 @@
 
 run() {
   date
-  cargo run --release --example gpw_median_check "../../../test_data/gpw/primeclue/$1" 60
+  cargo run --release --example gpw_median_check "../../../test_data/gpw/primeclue/$1" 120
 }
 
 set -e

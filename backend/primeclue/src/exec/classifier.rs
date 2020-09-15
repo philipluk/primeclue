@@ -62,7 +62,7 @@ impl Classifier {
             PrimeclueErr::result("Tree vectors is empty".to_string())
         } else if classes.len() != trees.len() {
             PrimeclueErr::result(format!(
-                "Class / Tree vectors lens don't match: {} vs {}",
+                "Class / Tree vectors lengths don't match: {} vs {}",
                 classes.len(),
                 trees.len()
             ))
@@ -148,10 +148,14 @@ impl Classifier {
 
     fn calc_tree_auc(tree: &ScoredTree, data: &DataView) -> Option<f32> {
         let values = tree.execute(data);
-        let mut outcomes =
-            values.into_iter().zip(data.outcomes().iter().copied()).collect::<Vec<_>>();
-        outcomes.sort_unstable_by(|(v1, _), (v2, _)| v1.partial_cmp(v2).unwrap());
-        Some(calculate_auc(&outcomes, tree.score().class()))
+        if values.iter().any(|v| !v.is_finite()) {
+            None
+        } else {
+            let mut outcomes =
+                values.into_iter().zip(data.outcomes().iter().copied()).collect::<Vec<_>>();
+            outcomes.sort_unstable_by(|(v1, _), (v2, _)| v1.partial_cmp(v2).unwrap());
+            Some(calculate_auc(&outcomes, tree.score().class()))
+        }
     }
 }
 
