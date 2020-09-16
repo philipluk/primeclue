@@ -17,11 +17,9 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::data;
-use crate::data::build_numbers_row;
 use crate::executor::{Status, StatusCallback, Termination};
-use crate::user::{read_files, Settings, CLASSIFIERS_DIR};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
+use primeclue::data::importer::{build_numbers_row, split_to_vec};
 use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::error::PrimeclueErr;
 use primeclue::exec::classifier::{Classifier, ClassifierScore};
@@ -29,6 +27,7 @@ use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::{Stats, TrainingGroup};
 use primeclue::serialization::serializator::SERIALIZED_FILE_EXT;
 use primeclue::serialization::{Deserializable, Serializable, Serializator};
+use primeclue::user::{read_files, Settings, CLASSIFIERS_DIR};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::read_dir;
@@ -196,8 +195,7 @@ pub(crate) struct ClassifyRequest {
 impl ClassifyRequest {
     pub(crate) fn classify(&self) -> Result<String, PrimeclueErr> {
         let classifiers = self.read_classifiers()?;
-        let mut data_raw =
-            data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
+        let mut data_raw = split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
         ClassifyRequest::validate_input_shape(&classifiers, &numbers)?;
         let responses_list = build_responses_list(&classifiers, &numbers);

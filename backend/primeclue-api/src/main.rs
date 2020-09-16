@@ -45,7 +45,6 @@ mod classifier;
 mod data;
 mod executor;
 mod rest;
-mod user;
 
 fn main() -> Result<(), std::io::Error> {
     setup_panic!();

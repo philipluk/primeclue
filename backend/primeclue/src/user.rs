@@ -17,22 +17,22 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use primeclue::error::PrimeclueErr;
+use crate::error::PrimeclueErr;
 use std::fs;
 use std::fs::{DirEntry, ReadDir};
 use std::path::PathBuf;
 
-pub(crate) const DELETE_IN_PROGRESS: &str = "delete_in_progress";
-pub(crate) const DATA_DIR: &str = "data";
-pub(crate) const CLASSIFIERS_DIR: &str = "classifiers";
+pub const DELETE_IN_PROGRESS: &str = "delete_in_progress";
+pub const DATA_DIR: &str = "data";
+pub const CLASSIFIERS_DIR: &str = "classifiers";
 
-#[derive(Clone)]
-pub(crate) struct Settings {
+#[derive(Clone, Debug)]
+pub struct Settings {
     base_dir: PathBuf,
 }
 
 impl Settings {
-    pub(crate) fn new() -> Result<Settings, String> {
+    pub fn new() -> Result<Settings, String> {
         // TODO get base directory from env variable if present
         let base_dir = dirs::home_dir()
             .ok_or_else(|| "Unable to get user's home directory".to_string())?
@@ -45,15 +45,15 @@ impl Settings {
         Ok(Settings { base_dir })
     }
 
-    pub(crate) fn base_dir(&self) -> &PathBuf {
+    pub fn base_dir(&self) -> &PathBuf {
         &self.base_dir
     }
 
-    pub(crate) fn data_dir(&self) -> PathBuf {
+    pub fn data_dir(&self) -> PathBuf {
         self.base_dir.clone().join(DATA_DIR)
     }
 
-    pub(crate) fn classifier_dir(&self) -> PathBuf {
+    pub fn classifier_dir(&self) -> PathBuf {
         self.base_dir.clone().join(CLASSIFIERS_DIR)
     }
 }
@@ -69,7 +69,7 @@ fn create_dir(dir: &PathBuf) -> Result<(), String> {
     }
 }
 
-pub(crate) fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
+pub fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
     let mut projects = vec![];
     for file in list {
         let file = file?;

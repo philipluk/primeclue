@@ -43,3 +43,4 @@ pub mod exec;
 pub mod math;
 pub mod rand;
 pub mod serialization;
+pub mod user;

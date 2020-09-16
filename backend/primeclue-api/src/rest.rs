@@ -18,11 +18,12 @@
 */
 
 use crate::classifier::{create, ClassifyRequest, CreateRequest};
-use crate::data::{classes, import, ClassRequest};
+use crate::data::{classes, import};
 use crate::executor::{Executor, Job, JobId, Status, Termination};
 use crate::{classifier, data};
 use actix_cors::Cors;
 use actix_web::{http, web, App, FromRequest, HttpResponse, HttpServer};
+use primeclue::data::importer::ClassRequest;
 use serde::Serialize;
 use std::sync::mpsc::channel;
 use std::sync::Mutex;

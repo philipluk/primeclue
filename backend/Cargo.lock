@@ -1172,6 +1172,7 @@ name = "primeclue"
 version = "0.1.0"
 dependencies = [
  "criterion 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand_xorshift 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1185,7 +1186,6 @@ version = "0.1.0"
 dependencies = [
  "actix-cors 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "human-panic 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "jemallocator 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "primeclue 0.1.0",

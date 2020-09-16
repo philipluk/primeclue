@@ -33,7 +33,7 @@ use std::fmt::Display;
 
 #[derive(Copy, Clone, Debug, Serialize)]
 pub struct ClassifierScore {
-    pub auc: f32,
+    pub auc: f32, // TODO rename to be consistent with Objective
     pub accuracy: f32,
     pub cost: f32,
 }
