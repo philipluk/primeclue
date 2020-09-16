@@ -69,7 +69,7 @@ impl Job {
 }
 
 pub(crate) struct Executor {
-    // TODO write tests
+    // TODO test
     next_id: u64,
     job_sender: Sender<Job>,
     status_sender: StatusSender,

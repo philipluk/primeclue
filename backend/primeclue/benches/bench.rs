@@ -109,10 +109,14 @@ fn vec_add_fast(c: &mut Criterion) {
         b.iter(|| {
             let mut col1 = data.cells().get(0, 0).clone();
             let col2 = data.cells().get(0, 1);
-            for (value1, value2) in col1.iter_mut().zip(col2) {
-                *value1 = *value1 + *value2;
-                black_box(value1);
+            for _ in 0..1000 {
+                // col1.iter_mut().enumerate().for_each(|(i, x)| *x = *x + col2[i]);// slower, probably due to [] access check
+                // col1.iter_mut().zip(col2).for_each(|(c1, c2)| *c1 = *c1 + *c2); // the same as below, but less readable
+                for (value1, value2) in col1.iter_mut().zip(col2) {
+                    *value1 = *value1 + *value2;
+                }
             }
+            black_box(col2);
         })
     });
 }

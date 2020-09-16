@@ -130,7 +130,6 @@ impl Tree {
             if !change {
                 return None;
             }
-            // TODO clean up: move threshold calculation and sort to objective.calc_score()
             let outcomes = sort_guesses(guesses, data.outcomes());
             let threshold = objective.threshold(&outcomes, class);
             Some(calc_score(&outcomes, threshold, class, objective))

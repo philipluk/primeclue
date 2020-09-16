@@ -183,9 +183,9 @@ mod test {
     #[test]
     fn test_generation() {
         let data = create_simple_data(100);
-        let (training, verification, _) = data.shuffle().into_3_views_split();
+        let (training_data, verification_data, _) = data.shuffle().into_3_views_split();
         let mut training_group =
-            TrainingGroup::new(training, verification, AUC, 3, &Vec::new()).unwrap();
+            TrainingGroup::new(training_data, verification_data, AUC, 3, &Vec::new()).unwrap();
         training_group.next_generation();
         training_group.next_generation();
         training_group.next_generation();

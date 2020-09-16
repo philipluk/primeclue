@@ -136,6 +136,23 @@ impl DataSet {
         (min, max)
     }
 
+    /// Filters [DataSet] to contains only points matching the predicate
+    /// It leaves original class map untouched so it may contain class labels
+    /// for classes no longer present.
+    #[must_use]
+    pub fn filter<F>(self, predicate: F) -> Self
+    where
+        F: Fn(&Point) -> bool,
+    {
+        let mut new = DataSet::new(self.classes.clone()); // TODO consider checking if all classes are present in `new`
+        for point in self.points {
+            if predicate(&point) {
+                new.add_data_point(point).unwrap();
+            }
+        }
+        new
+    }
+
     #[must_use]
     pub fn into_view(self) -> DataView {
         // TODO change to Option, None if empty
@@ -487,6 +504,17 @@ pub(crate) mod test {
             assert_eq!(point.outcome.penalty(), -3.0);
         }
         assert_eq!(data.cost_range(), (-27.0, 18.0))
+    }
+
+    #[test]
+    fn filter() {
+        let data = create_big_multiclass_data();
+        let class = Class::new(0);
+        let count = data.points.iter().filter(|p| p.outcome.class() == class).count();
+        assert!(count > 0);
+        let filtered = data.filter(|p| p.outcome.class() != class);
+        let count = filtered.points.iter().filter(|p| p.outcome.class() == class).count();
+        assert_eq!(count, 0);
     }
 
     pub(crate) fn create_simple_data(count: usize) -> DataSet {

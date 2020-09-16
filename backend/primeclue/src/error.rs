@@ -42,12 +42,14 @@ impl From<String> for PrimeclueErr {
     }
 }
 
+// TODO test
 impl From<std::io::Error> for PrimeclueErr {
     fn from(err: std::io::Error) -> Self {
         PrimeclueErr::from(err.to_string())
     }
 }
 
+// TODO test
 impl Display for PrimeclueErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.err)

@@ -31,6 +31,7 @@ use primeclue::serialization::serializator::SERIALIZED_FILE_EXT;
 use primeclue::serialization::{Deserializable, Serializable, Serializator};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::fs::read_dir;
 use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
@@ -159,7 +160,7 @@ fn read_data(request: &CreateRequest) -> Result<DataSet, PrimeclueErr> {
 
 pub(crate) fn list() -> Result<Vec<String>, PrimeclueErr> {
     let settings = Settings::new()?;
-    let list = fs::read_dir(&settings.classifier_dir())?;
+    let list = read_dir(&settings.classifier_dir())?;
     read_files(list)
 }
 
@@ -199,7 +200,7 @@ impl ClassifyRequest {
             data::split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
         ClassifyRequest::validate_input_shape(&classifiers, &numbers)?;
-        let responses_list = ClassifyRequest::build_responses_list(&classifiers, &numbers);
+        let responses_list = build_responses_list(&classifiers, &numbers);
         let mut classification = Vec::with_capacity(data_raw.len());
         for r in 0..data_raw.len() {
             let row = &mut data_raw[r];
@@ -211,18 +212,6 @@ impl ClassifyRequest {
             classification.push(line);
         }
         Ok(classification.join("\r\n"))
-    }
-
-    fn build_responses_list<'a>(
-        classifiers: &'a [Classifier],
-        numbers: &[Vec<f32>],
-    ) -> Vec<Vec<&'a str>> {
-        let mut responses_list = vec![];
-        for classifier in classifiers {
-            let responses = classify_all(&numbers, &classifier);
-            responses_list.push(responses);
-        }
-        responses_list
     }
 
     fn validate_input_shape(
@@ -239,7 +228,7 @@ impl ClassifyRequest {
         let settings = Settings::new()?;
         let mut classifiers = vec![];
         let path = settings.base_dir().join(CLASSIFIERS_DIR).join(&self.classifier_name);
-        for entry in fs::read_dir(&path)? {
+        for entry in read_dir(&path)? {
             let entry = entry?;
             if entry.file_name().to_str().unwrap().ends_with(SERIALIZED_FILE_EXT) {
                 classifiers
@@ -252,6 +241,18 @@ impl ClassifyRequest {
             Ok(classifiers)
         }
     }
+}
+
+fn build_responses_list<'a>(
+    classifiers: &'a [Classifier],
+    numbers: &[Vec<f32>],
+) -> Vec<Vec<&'a str>> {
+    let mut responses_list = vec![];
+    for classifier in classifiers {
+        let responses = classify_all(&numbers, &classifier);
+        responses_list.push(responses);
+    }
+    responses_list
 }
 
 fn split_into_sets(data: DataSet, keep_unseen: bool) -> (DataView, DataView, DataView) {

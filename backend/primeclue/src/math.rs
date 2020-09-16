@@ -6,6 +6,7 @@ pub fn std_dev(values: &[f32]) -> Vec<f32> {
     values.iter().map(|v| (v - avg) / st_dev).collect()
 }
 
+// TODO add test
 pub fn median(values: &mut [f32]) -> f32 {
     values.sort_by(|v1, v2| v1.partial_cmp(&v2).unwrap());
     let middle = values.len() / 2;

@@ -45,15 +45,8 @@ impl Deserializable for String {
     fn deserialize(s: &mut Serializator) -> Result<String, String> {
         match s.next_token() {
             Ok(s) => Ok(s.replace(PRIMECLUE_SPACE_SUBSTITUTE, " ")),
-            Err(e) => Err(e.to_string()), // TODO write test
+            Err(e) => Err(e.to_string()), // TODO test
         }
-    }
-}
-
-impl Deserializable for f64 {
-    fn deserialize(s: &mut Serializator) -> Result<f64, String> {
-        let v = s.next_token()?;
-        v.parse().map_err(|e| format!("Unable to parse '{}': {:?}", v, e))
     }
 }
 
@@ -65,7 +58,7 @@ impl Deserializable for f32 {
 }
 
 impl Deserializable for bool {
-    // TODO write test
+    // TODO test
     fn deserialize(s: &mut Serializator) -> Result<bool, String> {
         let v = s.next_token()?;
         v.parse().map_err(|e| format!("Unable to parse '{}': {:?}", v, e))
@@ -79,7 +72,7 @@ impl<T: Deserializable> Deserializable for Option<T> {
             "None" => Ok(None),
             "Some" => {
                 let v = T::deserialize(s)?;
-                Ok(Some(v))
+                Ok(Some(v)) // TODO test
             }
             _ => Err(format!("Invalid token when deserializing Option: '{}'", t)),
         }
