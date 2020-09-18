@@ -64,7 +64,7 @@ fn main() -> Result<(), PrimeclueErr> {
 
 fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
-    let data = DataSet::read_from_disk(&PathBuf::from(path)).ok()?;
+    let data = DataSet::read_from_disk(&PathBuf::from(path)).unwrap();
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.

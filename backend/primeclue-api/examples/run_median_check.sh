@@ -2,7 +2,7 @@
 
 run() {
   date
-  cargo run --release --example median_check "../../../test_data/primeclue_data/$1" 120
+  cargo run --release --example median_check "../../../test_data/primeclue_data/$1" 600
 }
 
 set -e

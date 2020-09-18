@@ -13,8 +13,7 @@ fn main() -> Result<(), PrimeclueErr> {
     let name = "mnist_fashion_training";
     // Get string content
     println!("Reading file");
-    let content = fs::read(PathBuf::from(path))?;
-    let content = String::from_utf8(content)
+    let content = String::from_utf8(fs::read(PathBuf::from(path))?)
         .map_err(|e| format!("Error converting file content: {:?}", e))?;
     // A bit hideous way to import all but last columns
     println!("Building column list");

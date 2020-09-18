@@ -139,11 +139,10 @@ fn classifier_create_handler(
 }
 
 pub(crate) fn start_web() -> std::io::Result<()> {
-    let executor = web::Data::new(Mutex::new(Executor::create()));
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::new())
-            .register_data(executor.clone())
+            .register_data(web::Data::new(Mutex::new(Executor::create())))
             .route("/data/classes", web::to(data_classes_handler).method(http::Method::POST))
             .route("/data/import", web::to(data_import_handler).method(http::Method::POST))
             .route("/data/list", web::to(data_list_handler).method(http::Method::GET))

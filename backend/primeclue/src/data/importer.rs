@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-pub fn create_input_data(
+fn create_input_data(
     line: usize,
     floats: &[Vec<f32>],
     rows_per_set: usize,
@@ -59,7 +59,7 @@ pub struct ClassRequest {
 }
 
 impl ClassRequest {
-    pub fn extract_reward_penalty(&self, row: &[&str]) -> Result<(f32, f32), PrimeclueErr> {
+    fn extract_reward_penalty(&self, row: &[&str]) -> Result<(f32, f32), PrimeclueErr> {
         if self.custom_reward_penalty_columns {
             let reward = row.get(self.reward_column - 1).ok_or_else(|| {
                 PrimeclueErr::from(format!("Unable to access {}'nth column", self.reward_column))
@@ -85,10 +85,10 @@ impl ClassRequest {
 
 #[derive(Deserialize, Debug, Copy, Clone)]
 pub struct Rewards {
-    pub correct_true: f32,
-    pub incorrect_true: f32,
-    pub correct_false: f32,
-    pub incorrect_false: f32,
+    correct_true: f32,
+    incorrect_true: f32,
+    correct_false: f32,
+    incorrect_false: f32,
 }
 
 pub fn build_data_set(r: &ClassRequest) -> Result<DataSet, PrimeclueErr> {

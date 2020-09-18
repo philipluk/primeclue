@@ -33,14 +33,14 @@ use std::fmt::Display;
 
 #[derive(Copy, Clone, Debug, Serialize)]
 pub struct ClassifierScore {
-    pub auc: f32, // TODO rename to be consistent with Objective
+    pub auc: f32,
     pub accuracy: f32,
     pub cost: f32,
 }
 
 impl Display for ClassifierScore {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:.2} AUC / {:.1}% / {:.1} cost", self.auc, self.accuracy, self.cost)
+        write!(f, "{:.2} AUC / {:.1}% / {:.1} Cost", self.auc, self.accuracy, self.cost)
     }
 }
 

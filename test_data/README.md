@@ -80,8 +80,8 @@ K. Fernandes, P. Vinagre and P. Cortez. A Proactive Intelligent Decision Support
 <h3>Stocks</h3>
 This is data named `gpw_100_4` in `gpw` directory. 
 Predicting whether a stock's price will double within next four months. Data collected from Polish stock market. Each line represents features
-of a single stock at the beginning of a year. Features include things like PE, PBV, Williams R indicator and past price changes.
-Training set contained dates before 2015, and testing set after that date. Executed by `gpw_median_check.rs` example.      
+of a single stock at the beginning of 4 month period (no overlapping, so January, May, September). Features include things like PE, PBV, Williams R 
+indicator and past price changes. Training set contained dates before 2015, and testing set after that date. Executed by `gpw_median_check.rs` example.      
           
 <h3>Fizz buzz</h3>
 Variation of <a href="https://en.wikipedia.org/wiki/Fizz_buzz">popular game</a>. Objective was to predict one of four classes:<br>
