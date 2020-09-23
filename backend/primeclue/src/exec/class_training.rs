@@ -38,7 +38,6 @@ struct GroupId(u64);
 
 pub struct ClassTraining {
     next_id: GroupId,
-    wasted_generations: usize,
     objective: Objective,
     size: usize,
     node_limit: usize,
@@ -67,7 +66,6 @@ impl ClassTraining {
         let groups = HashMap::new();
         ClassTraining {
             next_id: GroupId(1),
-            wasted_generations: 0,
             size,
             input_shape: *input_shape,
             forbidden_cols,
@@ -176,9 +174,6 @@ impl ClassTraining {
             best_now.set_score(score);
             if self.best_tree.is_none() || (&best_now > self.best_tree.as_ref().unwrap()) {
                 self.best_tree = Some(best_now);
-                self.wasted_generations = 0;
-            } else {
-                self.wasted_generations += 1;
             }
         }
     }
