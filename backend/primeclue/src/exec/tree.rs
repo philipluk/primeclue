@@ -57,7 +57,7 @@ impl Tree {
         data_prob: f64,
     ) -> Tree {
         let node = Weighted::new(
-            0,
+            1,
             input_shape,
             branch_prob,
             max_branch_length,
@@ -73,7 +73,7 @@ impl Tree {
         let count = rng.gen_range(0, (self.node_count() as f32).sqrt() as i32);
         for _ in 0..count {
             let node = self.select_random_node();
-            node.change_weight(rng.gen_range(-3.0, 3.0));
+            node.change_weight(rng.gen_range(0.0, 2.0));
         }
     }
 
@@ -83,13 +83,13 @@ impl Tree {
         node.mutate(&input_shape, forbidden_cols);
     }
 
-    pub fn select_node(&mut self, node_id: usize) -> &mut Weighted {
-        self.node.select_node(node_id, self.node_count)
-    }
-
     pub fn select_random_node(&mut self) -> &mut Weighted {
         let node_id = GET_RNG().gen_range(0, self.node_count());
-        self.select_node(node_id)
+        self.select_node_mut(node_id)
+    }
+
+    pub fn select_node_mut(&mut self, node_id: usize) -> &mut Weighted {
+        self.node.select_node_mut(node_id, self.node_count)
     }
 
     #[must_use]

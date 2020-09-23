@@ -66,7 +66,7 @@ impl TrainingGroup {
                 )
             })
             .collect();
-        let num_threads = training_data.class_count() * size;
+        let num_threads = 128;
         let thread_pool = ThreadPoolBuilder::new()
             .num_threads(num_threads)
             .build()
@@ -106,7 +106,7 @@ impl TrainingGroup {
         }
     }
 
-    /// Performs training for one second
+    /// Performs training for one generation
     pub fn next_generation(&mut self) {
         self.generation += 1;
         let training_data = &self.training_data;

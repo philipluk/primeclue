@@ -51,13 +51,6 @@ impl Weight {
         Weight { 0: GET_RNG().gen_range(-1.618, 1.618) }
     }
 
-    pub fn mutate(&mut self) {
-        let new = self.0 * GET_RNG().gen_range(0.0, 1.618);
-        if !new.is_nan() {
-            self.0 = new;
-        }
-    }
-
     #[must_use]
     pub fn from(v: f32) -> Weight {
         Weight { 0: v }
@@ -114,7 +107,9 @@ impl Weighted {
             Node::SingleArgFunction(f, n) => (f.fun)(n.execute(data)),
             Node::DoubleArgFunction(f, n1, n2) => (f.fun)(n1.execute(data), &n2.execute(data)),
         };
-        v.iter_mut().for_each(|v| *v = &self.w * *v);
+        v.iter_mut().for_each(|v| {
+            *v = &self.w * *v;
+        });
         v
     }
 
@@ -236,7 +231,7 @@ impl Weighted {
         next_node
     }
 
-    pub fn select_node(&mut self, id: usize, total: usize) -> &mut Weighted {
+    pub fn select_node_mut(&mut self, id: usize, total: usize) -> &mut Weighted {
         let mut count = id;
         let mut node_queue = Vec::with_capacity(total);
         let mut next_node = self;

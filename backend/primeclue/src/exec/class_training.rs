@@ -24,7 +24,6 @@ use crate::exec::score::{Objective, Score};
 use crate::exec::scored_tree::ScoredTree;
 use crate::exec::tree::Tree;
 use crate::rand::GET_RNG;
-use rand::seq::IteratorRandom;
 use rand::Rng;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use serde::export::fmt::Error;
@@ -33,9 +32,6 @@ use std::cmp::Ordering::Equal;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::mem::replace;
-use std::ops::Add;
-use std::time::Duration;
-use std::time::SystemTime;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 struct GroupId(u64);
@@ -103,15 +99,9 @@ impl ClassTraining {
         let length = self.size;
         let forbidden_cols = &self.forbidden_cols;
         self.groups.par_iter_mut().for_each(|(_, group)| {
-            let end_time = SystemTime::now().add(Duration::from_secs(1));
-            while SystemTime::now().lt(&end_time) {
-                group.breed(forbidden_cols, length);
-                group.execute_and_score(objective, training_data, class);
-                if group.scored.is_empty() {
-                    break;
-                }
-                group.remove_weak_trees(length);
-            }
+            group.breed(forbidden_cols, length);
+            group.execute_and_score(objective, training_data, class);
+            group.remove_weak_trees(length);
         });
         self.remove_empty_groups();
         self.select_best(verification_data);
@@ -227,7 +217,7 @@ impl ClassGroup {
         forbidden_cols: &[usize],
     ) -> Self {
         let mut rng = GET_RNG();
-        let max_branch_length = rng.gen_range(2, 30);
+        let max_branch_length = 3;
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
         let tree =
@@ -252,10 +242,6 @@ impl ClassGroup {
         ClassGroup { id, fresh: trees, scored: Vec::new() }
     }
 
-    fn total_score(&self) -> f32 {
-        self.scored.iter().map(|t| t.score().value()).sum()
-    }
-
     fn breed(&mut self, forbidden_cols: &[usize], count: usize) {
         if let Some(child) = ScoredTree::best_tree(&self.scored).map(|t| t.tree()) {
             while self.fresh.len() < count {
@@ -265,19 +251,6 @@ impl ClassGroup {
                 self.fresh.push(child);
             }
         }
-    }
-
-    fn random_parent(&self, total_score: f32) -> Option<&Tree> {
-        let mut rng = GET_RNG();
-        let rand_score = total_score * rng.gen_range(0.0, 1.0);
-        let mut parent_score = 0.0;
-        for id in 0..self.scored.len() {
-            parent_score += self.scored[id].score().value();
-            if parent_score >= rand_score {
-                return Some(self.scored[id].tree());
-            }
-        }
-        None
     }
 
     fn remove_weak_trees(&mut self, length: usize) {
@@ -308,32 +281,5 @@ fn generate_group(
     id: GroupId,
     forbidden_cols: &[usize],
 ) -> ClassGroup {
-    let mut rng = GET_RNG();
-    let random_chance =
-        (1.0 - (1.0 / (training.wasted_generations + 1) as f64)).min(0.1).max(0.9);
-    loop {
-        if rng.gen_bool(random_chance) {
-            return ClassGroup::create_random(
-                training.size,
-                &training.input_shape,
-                id,
-                forbidden_cols,
-            );
-        } else if let Some(class_group) = create_mutated(training, id, forbidden_cols) {
-            return class_group;
-        }
-    }
-}
-
-fn create_mutated(
-    training: &ClassTraining,
-    id: GroupId,
-    forbidden_cols: &[usize],
-) -> Option<ClassGroup> {
-    let mut rng = GET_RNG();
-    let group = training.groups.values().choose(&mut rng)?;
-    let total_score = group.total_score();
-    let mut tree = group.random_parent(total_score)?.clone();
-    tree.mutate(forbidden_cols);
-    Some(ClassGroup::create_from_tree(training.size, id, tree, forbidden_cols))
+    ClassGroup::create_random(training.size, &training.input_shape, id, forbidden_cols)
 }

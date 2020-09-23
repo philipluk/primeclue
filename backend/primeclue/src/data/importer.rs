@@ -81,6 +81,39 @@ impl ClassRequest {
             Ok((1.0, -1.0))
         }
     }
+
+    /// Method to build [`ClassRequest`] for a simple case:
+    /// - use comma (,) as field separator
+    /// - import all but last column
+    /// - use the last column as class label
+    ///
+    /// # Arguments:
+    /// * `name`: name of imported data
+    /// * `content`: data string: '1.0,3.0,false\r\n2.0,1.0,true\r\n'
+    /// * `ignore_first_row`: use first row in content as header (do not import)
+    pub fn simple_csv_request(name: &str, content: String, ignore_first_row: bool) -> Self {
+        let line = &split_to_vec(&content, ",", false)[0];
+        let len = line.len();
+        let mut import_columns = vec![];
+        for _ in 0..len - 1 {
+            import_columns.push(true);
+        }
+        import_columns.push(false);
+
+        ClassRequest {
+            content,
+            expression: "".to_string(),
+            class_column: len,
+            separator: ",".to_string(),
+            ignore_first_row,
+            rows_per_set: 1,
+            import_columns,
+            data_name: name.to_string(),
+            custom_reward_penalty_columns: false,
+            reward_column: 0,
+            penalty_column: 0,
+        }
+    }
 }
 
 #[derive(Deserialize, Debug, Copy, Clone)]
@@ -233,5 +266,11 @@ fn build_class_map(
 
 #[derive(Serialize, Debug)]
 pub struct ClassResponse {
-    pub classes: Vec<String>, // TODO remove pub
+    classes: Vec<String>,
+}
+
+impl ClassResponse {
+    pub fn new(classes: Vec<String>) -> Self {
+        ClassResponse { classes }
+    }
 }

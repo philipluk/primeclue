@@ -32,17 +32,15 @@ fn check_once() -> Option<f32> {
     // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
     let data_path = Settings::new().unwrap().data_dir();
 
-    // Get training and testing data from separate files
+    // Get training data
     let (training_data, verification_data) =
         DataSet::read_from_disk(&data_path.join("mnist_fashion_training"))
             .unwrap()
             .shuffle()
             .into_2_views_split();
-    let testing_data =
-        DataSet::read_from_disk(&data_path.join("mnist_fashion_testing")).unwrap().into_view();
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
-    let end_time = Instant::now().add(std::time::Duration::from_secs(60 * 7 as u64));
+    let end_time = Instant::now().add(std::time::Duration::from_secs(60 as u64));
 
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
@@ -57,6 +55,10 @@ fn check_once() -> Option<f32> {
 
     // Get classifier after training has finished. It will fail if there is no classifier for any of the classes
     let classifier = training.classifier().ok()?;
+
+    // Get testing data
+    let testing_data =
+        DataSet::read_from_disk(&data_path.join("mnist_fashion_testing")).unwrap().into_view();
 
     // Get classifier's score on unseen data
     Some(classifier.score(&testing_data)?.accuracy)

@@ -76,7 +76,7 @@ pub(crate) fn classes(r: &ClassRequest) -> Result<ClassResponse, PrimeclueErr> {
         let class = class_producer.class(&data, row)?;
         classes.push(class.map_or(String::new(), |c| c.to_string()))
     }
-    Ok(ClassResponse { classes })
+    Ok(ClassResponse::new(classes))
 }
 
 fn save_data<F>(
