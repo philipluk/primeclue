@@ -46,6 +46,7 @@ pub struct ClassTraining {
     best_tree: Option<ScoredTree>,
     class: Class,
     groups: HashMap<GroupId, ClassGroup>,
+    max_depth: usize,
 }
 
 impl Debug for ClassTraining {
@@ -74,6 +75,7 @@ impl ClassTraining {
             best_tree: None,
             objective,
             class,
+            max_depth: 3, // TODO refactor into parameter from frontend
         }
     }
 
@@ -132,7 +134,7 @@ impl ClassTraining {
         while self.groups.len() < self.size * 2 {
             let id = self.next_id;
             self.next_id.0 += 1;
-            let group = generate_group(self, id, &self.forbidden_cols);
+            let group = generate_group(self, id, &self.forbidden_cols, self.max_depth);
             self.groups.insert(group.id, group);
         }
     }
@@ -178,7 +180,7 @@ impl ClassTraining {
         }
     }
 
-    fn sorted_by_score(&mut self, data: &DataView) -> Vec<(GroupId, Score)> {
+    fn sorted_by_score(&self, data: &DataView) -> Vec<(GroupId, Score)> {
         let mut scores = Vec::with_capacity(self.groups.len());
         for g in self.groups.values() {
             if let Some(tree) = ScoredTree::best_tree(&g.scored) {
@@ -209,14 +211,13 @@ impl ClassGroup {
         group_size: usize,
         input_shape: &InputShape,
         id: GroupId,
+        max_depth: usize,
         forbidden_cols: &[usize],
     ) -> Self {
         let mut rng = GET_RNG();
-        let max_branch_length = 3;
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree =
-            Tree::new(input_shape, max_branch_length, forbidden_cols, branch_prob, data_prob);
+        let tree = Tree::new(input_shape, max_depth, forbidden_cols, branch_prob, data_prob);
         ClassGroup::create_from_tree(group_size, id, tree, forbidden_cols)
     }
 
@@ -275,6 +276,13 @@ fn generate_group(
     training: &ClassTraining,
     id: GroupId,
     forbidden_cols: &[usize],
+    max_depth: usize,
 ) -> ClassGroup {
-    ClassGroup::create_random(training.size, &training.input_shape, id, forbidden_cols)
+    ClassGroup::create_random(
+        training.size,
+        &training.input_shape,
+        id,
+        max_depth,
+        forbidden_cols,
+    )
 }

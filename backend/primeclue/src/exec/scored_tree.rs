@@ -19,6 +19,7 @@
 
 use crate::data::data_set::DataView;
 use crate::data::InputShape;
+use crate::exec::node::Weighted;
 use crate::exec::score::Score;
 use crate::exec::tree::Tree;
 use crate::serialization::{Deserializable, Serializable, Serializator};
@@ -110,6 +111,10 @@ impl ScoredTree {
 
     pub fn execute_for_score(&self, data: &DataView) -> Option<Score> {
         self.tree.execute_for_score(data, self.score.class(), self.score.objective())
+    }
+
+    pub fn get_start_node(&self) -> &Weighted {
+        self.tree.get_start_node()
     }
 }
 

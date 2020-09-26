@@ -33,16 +33,11 @@ fn select_node(c: &mut Criterion) {
     let mut rng = GET_RNG();
     let mut trees = vec![];
     for _ in 0..100 {
-        let max_branch_length = rng.gen_range(2, 30);
+        let max_depth = rng.gen_range(2, 10);
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree = Tree::new(
-            &InputShape::new(1, 10),
-            max_branch_length,
-            &vec![],
-            branch_prob,
-            data_prob,
-        );
+        let tree =
+            Tree::new(&InputShape::new(1, 10), max_depth, &vec![], branch_prob, data_prob);
         trees.push(tree)
     }
 
@@ -139,11 +134,10 @@ fn execute_tree_bench(c: &mut Criterion) {
     let mut rng = GET_RNG();
     let mut trees = vec![];
     for _ in 0..100 {
-        let max_branch_length = rng.gen_range(2, 30);
+        let max_depth = rng.gen_range(2, 10);
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree =
-            Tree::new(data.input_shape(), max_branch_length, &vec![], branch_prob, data_prob);
+        let tree = Tree::new(data.input_shape(), max_depth, &vec![], branch_prob, data_prob);
         trees.push(tree)
     }
 
@@ -162,12 +156,12 @@ fn create_tree_bench(c: &mut Criterion) {
         b.iter(|| {
             let mut rng = GET_RNG();
             for _ in 0..100 {
-                let max_branch_length = rng.gen_range(2, 30);
+                let max_depth = rng.gen_range(2, 10);
                 let data_prob = rng.gen_range(0.01, 0.99);
                 let branch_prob = rng.gen_range(0.01, 0.99);
                 let _ = Tree::new(
                     black_box(&InputShape::new(1, 6)),
-                    max_branch_length,
+                    max_depth,
                     &forbidden_cols,
                     branch_prob,
                     data_prob,

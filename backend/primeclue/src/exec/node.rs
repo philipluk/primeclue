@@ -114,22 +114,21 @@ impl Weighted {
     }
 
     pub fn new(
-        current_length: usize,
+        current_depth: usize,
         input_shape: &InputShape,
         branch_prob: f64,
-        max_branch_length: usize,
+        max_depth: usize,
         forbidden_cols: &[usize],
         data_prob: f64,
     ) -> Weighted {
-        let terminate = GET_RNG().gen_bool(current_length as f64 / max_branch_length as f64);
-        if terminate {
+        if current_depth == max_depth {
             Weighted::new_terminating_node(input_shape, forbidden_cols, data_prob)
         } else {
             Weighted::new_function_node(
-                current_length,
+                current_depth,
                 input_shape,
                 branch_prob,
-                max_branch_length,
+                max_depth,
                 forbidden_cols,
                 data_prob,
             )
@@ -137,29 +136,29 @@ impl Weighted {
     }
 
     fn new_function_node(
-        current_length: usize,
+        current_depth: usize,
         input_shape: &InputShape,
         branch_prob: f64,
-        max_branch_length: usize,
+        max_depth: usize,
         forbidden_cols: &[usize],
         data_prob: f64,
     ) -> Weighted {
         let mut rng = GET_RNG();
-        let current_length = current_length + 1;
+        let current_depth = current_depth + 1;
         if rng.gen_bool(branch_prob) {
             let wn1 = Weighted::new(
-                current_length,
+                current_depth,
                 input_shape,
                 branch_prob,
-                max_branch_length,
+                max_depth,
                 forbidden_cols,
                 data_prob,
             );
             let wn2 = Weighted::new(
-                current_length,
+                current_depth,
                 input_shape,
                 branch_prob,
-                max_branch_length,
+                max_depth,
                 forbidden_cols,
                 data_prob,
             );
@@ -169,10 +168,10 @@ impl Weighted {
             Weighted { w, n: Box::new(n) }
         } else {
             let wn = Weighted::new(
-                current_length,
+                current_depth,
                 input_shape,
                 branch_prob,
-                max_branch_length,
+                max_depth,
                 forbidden_cols,
                 data_prob,
             );
