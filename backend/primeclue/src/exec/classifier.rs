@@ -217,7 +217,7 @@ mod test {
         let r = Classifier::new(classes, vec![]);
         assert!(r.is_err());
 
-        let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
+        let t = Tree::new(&InputShape::new(1, 1), 3, &[], 0.5, 0.5);
         let classes = HashMap::new();
         let r = Classifier::new(
             classes,
@@ -230,7 +230,7 @@ mod test {
     fn invalid_class_count() {
         let mut trees = vec![];
         for i in 0..3 {
-            let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
+            let t = Tree::new(&InputShape::new(1, 1), 3, &[], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
                 Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),
@@ -244,7 +244,7 @@ mod test {
 
         let mut trees = vec![];
         for i in 0..2 {
-            let t = Tree::new(&InputShape::new(1, 1), 3, &vec![], 0.5, 0.5);
+            let t = Tree::new(&InputShape::new(1, 1), 3, &[], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
                 Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),

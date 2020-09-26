@@ -4,7 +4,7 @@ Primeclue's learning powers were checked on publicly available data listed below
 Testing procedure:
 
 1. Split data randomly into training and testing sets.
-2. Train classifiers on training data for 10 minutes.
+2. Train classifiers on training data for 5 minutes.
 3. Take the best classifier and note its result on test data.
 4. Repeat above steps 20 times.
 5. Record median result on test data. 

@@ -36,8 +36,7 @@ fn select_node(c: &mut Criterion) {
         let max_depth = rng.gen_range(2, 10);
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree =
-            Tree::new(&InputShape::new(1, 10), max_depth, &vec![], branch_prob, data_prob);
+        let tree = Tree::new(&InputShape::new(1, 10), max_depth, &[], branch_prob, data_prob);
         trees.push(tree)
     }
 
@@ -89,7 +88,7 @@ fn training_group_generation_bench(c: &mut Criterion) {
     let (training_data, verification_data, _) =
         create_sample_data(1_000).shuffle().into_3_views_split();
     let mut training_group =
-        TrainingGroup::new(training_data, verification_data, AUC, 10, &vec![]).unwrap();
+        TrainingGroup::new(training_data, verification_data, AUC, 10, &[]).unwrap();
     c.bench_function("training_group_generation_bench", |b| {
         b.iter(|| {
             training_group.next_generation();
@@ -137,7 +136,7 @@ fn execute_tree_bench(c: &mut Criterion) {
         let max_depth = rng.gen_range(2, 10);
         let data_prob = rng.gen_range(0.01, 0.99);
         let branch_prob = rng.gen_range(0.01, 0.99);
-        let tree = Tree::new(data.input_shape(), max_depth, &vec![], branch_prob, data_prob);
+        let tree = Tree::new(data.input_shape(), max_depth, &[], branch_prob, data_prob);
         trees.push(tree)
     }
 
