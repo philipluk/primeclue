@@ -162,6 +162,27 @@ fn build_data_point(
     Ok(Point::new(id, pd))
 }
 
+pub fn get_header_row(
+    content: &str,
+    separator: &str,
+    ignore_first_row: bool,
+    mut names: Vec<String>,
+) -> Vec<String> {
+    let lines = content.split('\n').map(str::trim).collect::<Vec<_>>();
+    match lines.first() {
+        None => vec![],
+        Some(first) => {
+            let mut header = if ignore_first_row {
+                first.split(separator).map(|s| s.to_owned()).collect::<Vec<_>>()
+            } else {
+                vec!["".to_owned(); first.split(separator).count()]
+            };
+            header.append(&mut names);
+            header
+        }
+    }
+}
+
 pub fn split_to_vec<'a>(
     // TODO move to data
     content: &'a str,

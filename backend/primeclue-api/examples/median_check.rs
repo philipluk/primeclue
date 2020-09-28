@@ -70,13 +70,13 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // testing set in used to display result to the user.
     let (training_data, verification_data, test_data) = data.shuffle().into_3_views_split();
 
-    // Get some loop break condition. Here it's time limit, regardless of result or generation count
-    let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
-
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
         TrainingGroup::new(training_data, verification_data, Objective::AUC, 1000, &[]).ok()?;
+
+    // Get some loop break condition. Here it's time limit, regardless of result or generation count
+    let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
 
     // Actual training happens here
     while Instant::now().lt(&end_time) {

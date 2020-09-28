@@ -4,7 +4,7 @@ Primeclue's learning powers were checked on publicly available data listed below
 Testing procedure:
 
 1. Split data randomly into training and testing sets.
-2. Train classifiers on training data for 5 minutes.
+2. Train classifiers on training data for 1 minute.
 3. Take the best classifier and note its result on test data.
 4. Repeat above steps 20 times.
 5. Record median result on test data. 
@@ -15,17 +15,17 @@ Table below shows median best result ([AUC - Area Under the Curve](https://en.wi
 
 Data name | Median AUC
 --- | ---
-Adult income | 0.9 
+Adult income | 0.88 
 Banknote verification | 1.0
-Breast cancer diagnosis | 0.76 
-Companies 1 year bankruptcy | 0.92
-Credit card default | 0.77
+Breast cancer diagnosis | 0.75 
+Companies 1 year bankruptcy | 0.93
+Credit card default | 0.75
 Crime rate | 0.89
-Heart disease | 0.8                                    
-Hepatitis deaths | 0.79                   
+Heart disease | 0.81                                    
+Hepatitis deaths | 0.77                   
 Online news popularity | 1.0     
 Stocks | 0.83 
-Fizz Buzz | 0.98    
+Fizz Buzz | 0.97    
 Breast cancer with mistake: | 1.0
 Random | 0.50
 

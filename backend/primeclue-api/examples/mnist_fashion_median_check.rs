@@ -29,9 +29,11 @@ fn main() -> Result<(), PrimeclueErr> {
 }
 
 fn check_once() -> Option<f32> {
-    // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
+
+    // Get default data path
     let data_path = Settings::new().unwrap().data_dir();
 
+    // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
     // Get training data
     let (training_data, verification_data) =
         DataSet::read_from_disk(&data_path.join("mnist_fashion_training"))
@@ -39,20 +41,18 @@ fn check_once() -> Option<f32> {
             .shuffle()
             .into_2_views_split();
 
-    // Get some loop break condition. Here it's time limit, regardless of result or generation count
-    let end_time = Instant::now().add(std::time::Duration::from_secs((7 * 60) as u64));
-
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
         TrainingGroup::new(training_data, verification_data, Objective::Accuracy, 100, &[])
             .ok()?;
+    // Get some loop break condition. Here it's time limit, regardless of result or generation count
+    let end_time = Instant::now().add(std::time::Duration::from_secs(60 as u64));
 
     // Actual training happens here
     while Instant::now().lt(&end_time) {
         training.next_generation();
     }
-
     // Get classifier after training has finished. It will fail if there is no classifier for any of the classes
     let classifier = training.classifier().ok()?;
 

@@ -19,7 +19,7 @@
 
 use crate::executor::{Status, StatusCallback, Termination};
 use primeclue::data::data_set::{DataSet, DataView, Rewards};
-use primeclue::data::importer::{build_numbers_row, split_to_vec};
+use primeclue::data::importer::{build_numbers_row, get_header_row, split_to_vec};
 use primeclue::data::{Input, InputShape, Outcome, Point};
 use primeclue::error::PrimeclueErr;
 use primeclue::exec::classifier::{Classifier, ClassifierScore};
@@ -194,12 +194,15 @@ pub(crate) struct ClassifyRequest {
 
 impl ClassifyRequest {
     pub(crate) fn classify(&self) -> Result<String, PrimeclueErr> {
-        let classifiers = self.read_classifiers()?;
+        let (classifiers, names) = self.read_classifiers()?;
+        let header_row =
+            get_header_row(&self.content, &self.separator, self.ignore_first_row, names);
         let mut data_raw = split_to_vec(&self.content, &self.separator, self.ignore_first_row);
         let numbers = parse_data(&data_raw, &self.data_columns)?;
         ClassifyRequest::validate_input_shape(&classifiers, &numbers)?;
         let responses_list = build_responses_list(&classifiers, &numbers);
         let mut classification = Vec::with_capacity(data_raw.len());
+        classification.push(header_row.join(&self.separator));
         for r in 0..data_raw.len() {
             let row = &mut data_raw[r];
             for responses in &responses_list {
@@ -222,21 +225,28 @@ impl ClassifyRequest {
         Ok(())
     }
 
-    fn read_classifiers(&self) -> Result<Vec<Classifier>, PrimeclueErr> {
+    fn read_classifiers(&self) -> Result<(Vec<Classifier>, Vec<String>), PrimeclueErr> {
         let settings = Settings::new()?;
         let mut classifiers = vec![];
         let path = settings.base_dir().join(CLASSIFIERS_DIR).join(&self.classifier_name);
+        let mut names = vec![];
         for entry in read_dir(&path)? {
             let entry = entry?;
-            if entry.file_name().to_str().unwrap().ends_with(SERIALIZED_FILE_EXT) {
-                classifiers
-                    .push(Classifier::deserialize(&mut Serializator::load(&entry.path())?)?);
+            let file_name = entry.file_name().into_string().unwrap();
+            if file_name.ends_with(SERIALIZED_FILE_EXT) {
+                names.push(file_name);
             }
+        }
+        names.sort();
+        for name in &names {
+            let path = path.join(&name);
+            let classifier = Classifier::deserialize(&mut Serializator::load(&path)?)?;
+            classifiers.push(classifier);
         }
         if classifiers.is_empty() {
             PrimeclueErr::result(format!("Unable to find serialized object in {:?}", path))
         } else {
-            Ok(classifiers)
+            Ok((classifiers, names))
         }
     }
 }

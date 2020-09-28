@@ -66,7 +66,7 @@ impl TrainingGroup {
                 )
             })
             .collect();
-        let num_threads = 128;
+        let num_threads = 64;
         let thread_pool = ThreadPoolBuilder::new()
             .num_threads(num_threads)
             .build()
