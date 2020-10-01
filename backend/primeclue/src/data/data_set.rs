@@ -23,6 +23,7 @@ use crate::error::PrimeclueErr;
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 use rand::seq::SliceRandom;
+use rand::Rng;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -82,6 +83,27 @@ pub struct DataView {
 }
 
 impl DataView {
+    pub fn random_guess_cost(&self) -> f32 {
+        let count = 100;
+        let mut sum = 0.0;
+        for _ in 0..count {
+            sum += self.random_guess_cost_once();
+        }
+        sum / count as f32
+    }
+
+    fn random_guess_cost_once(&self) -> f32 {
+        let mut cost = 0.0;
+        let mut rng = GET_RNG();
+        for outcome in &self.outcomes {
+            cost += outcome.calculate_cost(
+                rng.gen_bool(0.5),
+                Class::new(rng.gen_range(0, self.class_map.len()) as u16),
+            );
+        }
+        cost
+    }
+
     pub fn cost_range(&self) -> (f32, f32) {
         let mut reward = 0.0;
         let mut penalty = 0.0;
@@ -235,7 +257,6 @@ impl DataSet {
     where
         P: Fn(&Point) -> bool,
     {
-        use rand::Rng;
         let mut training_set = DataSet::new(self.classes.clone());
         let mut verification_set = DataSet::new(self.classes.clone());
         let mut testing_set = DataSet::new(self.classes.clone());

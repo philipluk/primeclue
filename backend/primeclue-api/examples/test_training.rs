@@ -27,7 +27,7 @@ use rand::Rng;
 use std::collections::HashMap;
 
 // Run with : cargo run --release --example test_training
-// Average time to success: 798
+// Average time to success: 539
 
 fn main() {
     let mut sum = 0.0;
@@ -48,26 +48,29 @@ fn training_success(attempt: usize) -> f64 {
     let string_classes = classes.iter().map(|(c, s)| (s.clone(), *c)).collect::<HashMap<_, _>>();
     let mut data_set = DataSet::new(classes);
     let mut rng = GET_RNG();
-    for _ in 0..4 * 250 {
-        let a = rng.gen_range(0, 100);
-        let b = rng.gen_range(0, 100);
-        let c = rng.gen_range(0, 100);
+    let max = 100;
+    for i in 1..=3 {
+        for _ in 0..500 {
+            let a = i * max + rng.gen_range(0, max);
+            let b = i * max + rng.gen_range(0, max);
+            let c = i * max + rng.gen_range(0, max);
 
-        let output = if a % 15 == 0 {
-            "A"
-        } else if (b + 2) % 5 == 0 {
-            "B"
-        } else if (c + 5) % 3 == 0 {
-            "C"
-        } else {
-            "D"
-        };
+            let output = if a % 15 == 0 {
+                "A"
+            } else if (b + 2) % 5 == 0 {
+                "B"
+            } else if (c + 5) % 3 == 0 {
+                "C"
+            } else {
+                "D"
+            };
 
-        let point = Point::new(
-            Input::from_vector(vec![vec![a as f32, b as f32, c as f32]]).unwrap(),
-            Outcome::new(*string_classes.get(output).unwrap(), 1.0, -1.0),
-        );
-        data_set.add_data_point(point).unwrap();
+            let point = Point::new(
+                Input::from_vector(vec![vec![a as f32, b as f32, c as f32]]).unwrap(),
+                Outcome::new(*string_classes.get(output).unwrap(), 1.0, -1.0),
+            );
+            data_set.add_data_point(point).unwrap();
+        }
     }
 
     let (training_data, verification_data, test_data) = data_set.shuffle().into_3_views_split();
@@ -80,19 +83,26 @@ fn training_success(attempt: usize) -> f64 {
         &Vec::new(),
     )
     .unwrap();
-    let required_score = 90.0;
+    let required_score = 70.0;
     let start = std::time::Instant::now();
     loop {
         training.next_generation();
         if let Ok(classifier) = training.classifier() {
             if let Some(score) = classifier.score(&test_data) {
                 if let Some(stats) = training.stats() {
-                    println!(
-                        "Testing training #{}, generation: {}, unseen: {}",
-                        attempt, stats.generation, score.accuracy
-                    );
+                    if stats.generation >= 10_000 {
+                        println!("Training failed! Unable to learn after 10k generations");
+                        std::process::exit(1);
+                    }
+                    if stats.generation % 10 == 0 {
+                        println!(
+                            "Testing training #{}, generation: {}, unseen: {}",
+                            attempt, stats.generation, score.accuracy
+                        );
+                    }
                 }
                 if score.accuracy > required_score {
+                    println!("Testing training #{}, unseen: {}", attempt, score.accuracy);
                     let elapsed =
                         std::time::Instant::now().duration_since(start).as_millis() as f64;
                     return elapsed;

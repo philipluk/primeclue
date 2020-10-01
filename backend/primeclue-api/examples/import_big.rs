@@ -15,8 +15,6 @@ fn main() -> Result<(), PrimeclueErr> {
     println!("Reading file");
     let content = String::from_utf8(fs::read(PathBuf::from(path))?)
         .map_err(|e| format!("Error converting file content: {:?}", e))?;
-    // A bit hideous way to import all but last columns
-    println!("Building column list");
     let class_request = ClassRequest::simple_csv_request(name, content, false);
     println!("Building data set");
     let data_set = build_data_set(&class_request)?;

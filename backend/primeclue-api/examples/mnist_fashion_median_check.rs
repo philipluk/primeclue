@@ -29,7 +29,6 @@ fn main() -> Result<(), PrimeclueErr> {
 }
 
 fn check_once() -> Option<f32> {
-
     // Get default data path
     let data_path = Settings::new().unwrap().data_dir();
 

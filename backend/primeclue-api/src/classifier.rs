@@ -81,7 +81,8 @@ fn print_cost_range(data1: &DataView, data2: &DataView) {
     let (max, min) = data1.cost_range();
     println!("Cost range for training data {} {}", min, max);
     let (max, min) = data2.cost_range();
-    println!("Cost range for test data {} {}", min, max);
+    let random_guess = data2.random_guess_cost();
+    println!("Cost range for test data {} {}, guessing randomly: {}", min, max, random_guess);
 }
 
 fn start_training(

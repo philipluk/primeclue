@@ -184,7 +184,6 @@ pub fn get_header_row(
 }
 
 pub fn split_to_vec<'a>(
-    // TODO move to data
     content: &'a str,
     separator: &str,
     ignore_first_row: bool,
