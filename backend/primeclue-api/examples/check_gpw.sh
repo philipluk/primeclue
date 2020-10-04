@@ -14,6 +14,3 @@ run gpw_50_3
 run gpw_50_4
 run gpw_100_4
 run gpw_100_6
-run gpw_100_12
-run gpw_200_12
-run gpw_300_12

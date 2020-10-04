@@ -71,7 +71,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Here data is split with "marker" to decide which points go to testing set. Data is
     // imported with 'date' column which is used to recognize points in years 2015 and later.
     let (training_data, verification_data, test_data) =
-        data.split_with_test_data_marker(|p| p.data().0.get(0, 0) > 2015_00_00 as f32);
+        data.split_with_test_data_marker(|p| p.data().0.get(0, 0) > 2017_00_00 as f32);
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
     let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
@@ -79,10 +79,12 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
-        TrainingGroup::new(training_data, verification_data, Objective::AUC, 1000, &[0]).ok()?;
+        TrainingGroup::new(training_data, verification_data, Objective::AUC, 100, &[0]).ok()?;
 
     // Actual training happens here
     while Instant::now().lt(&end_time) {
+        training.next_generation();
+        training.next_generation();
         training.next_generation();
     }
 
@@ -90,15 +92,21 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     let classifier = training.classifier().ok()?;
 
     // Get classifier's score on unseen data
-    Some(classifier.score(&test_data)?.auc)
+    // Some(classifier.score(&test_data)?.auc)
 
-    // Use the following code to get cost per each "true" label predicted
-    // let predictions = classifier.classify(&test_data);
-    // let true_count = predictions.iter().filter(|&&p| p == "true").count();
-    // let points = classifier.score(&test_data)?.cost;
-    // if true_count > 0 && !points.is_nan() {
-    //     Some(points / true_count as f32)
-    // } else {
-    //     None
-    // }
+    // Use the following code to get average profit for all "true" label predictions
+    let predictions = classifier.classify(&test_data);
+    let mut true_count = 0;
+    let mut sum_profit = 0.0;
+    for (point, prediction) in test_data.outcomes().iter().zip(predictions) {
+        if prediction == "true" {
+            true_count += 1;
+            sum_profit += point.reward() + point.penalty();
+        }
+    }
+    if true_count > 0 && !sum_profit.is_nan() {
+        Some(sum_profit / true_count as f32)
+    } else {
+        None
+    }
 }
