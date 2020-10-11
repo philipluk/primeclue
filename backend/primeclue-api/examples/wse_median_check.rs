@@ -47,7 +47,7 @@ fn main() -> Result<(), PrimeclueErr> {
     let count = 20;
     let mut results = Vec::with_capacity(count);
     for run in 0..count {
-        if let Some(result) = check_once(&path, seconds) {
+        if let Some(result) = check_once(&path, seconds, run) {
             results.push(result);
             println!("Loop #{} of {} result: {} ", run + 1, count, result);
         } else {
@@ -62,14 +62,17 @@ fn main() -> Result<(), PrimeclueErr> {
     Ok(())
 }
 
-fn check_once(path: &str, seconds: usize) -> Option<f32> {
+fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
     let data = DataSet::read_from_disk(&PathBuf::from(path)).unwrap();
+
+    // Use this to remove some data, for example stocks not in uptrend
+    // let data = data.filter(|p| p.data().0.get(0, 7) > 0.0);
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.
     // Here data is split with "marker" to decide which points go to testing set. Data is
-    // imported with 'date' column which is used to recognize points in years 2015 and later.
+    // imported with 'date' column which is used to recognize points in years 2017 and later.
     let (training_data, verification_data, test_data) =
         data.split_with_test_data_marker(|p| p.data().0.get(0, 0) > 2017_00_00 as f32);
 
@@ -84,12 +87,15 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Actual training happens here
     while Instant::now().lt(&end_time) {
         training.next_generation();
-        training.next_generation();
-        training.next_generation();
     }
 
     // Get classifier after training has finished. It will fail if there is no classifier for any of the classes
     let classifier = training.classifier().ok()?;
+
+    // Use the following code to save classifier to disk and use it later for classification
+    // let p = PathBuf::from(path);
+    // let name = p.file_name().unwrap().to_str().unwrap();
+    // classifier.save(&p, name).unwrap();
 
     // Get classifier's score on unseen data
     // Some(classifier.score(&test_data)?.auc)

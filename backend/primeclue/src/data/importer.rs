@@ -94,11 +94,8 @@ impl ClassRequest {
     pub fn simple_csv_request(name: &str, content: String, ignore_first_row: bool) -> Self {
         let line = &split_to_vec(&content, ",", false)[0];
         let len = line.len();
-        let mut import_columns = vec![];
-        for _ in 0..len - 1 {
-            import_columns.push(true);
-        }
-        import_columns.push(false);
+        let mut import_columns = vec![true; len];
+        import_columns.insert(len - 1, false);
 
         ClassRequest {
             content,

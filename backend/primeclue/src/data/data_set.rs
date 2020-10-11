@@ -270,12 +270,6 @@ impl DataSet {
                 verification_set.add_data_point(point).unwrap();
             }
         }
-        println!(
-            "Splitting data with marker. Sets lengths: {} {} {}",
-            training_set.len(),
-            verification_set.len(),
-            testing_set.len()
-        );
         (training_set.into_view(), verification_set.into_view(), testing_set.into_view())
     }
 
@@ -451,6 +445,24 @@ pub(crate) mod test {
         assert_eq!(view.cells.get(1, 1), &expected);
         let expected: Vec<f32> = vec![6.0, 7.0, 13.0, 12.0, 13.0, 130.0, 12.0, 18.0, 8.0];
         assert_eq!(view.cells.get(1, 2), &expected);
+    }
+
+    #[test]
+    fn test_split_with_marker() {
+        let data = create_simple_data(1_000);
+        let total = data.points.len();
+        let marker = 500.0;
+        let (t, v, tst) = data.split_with_test_data_marker(|p| p.input.get(0, 1) > marker);
+        assert!(!t.outcomes.is_empty());
+        assert!(!v.outcomes.is_empty());
+        assert!(!tst.outcomes.is_empty());
+        assert_eq!(t.outcomes.len() + v.outcomes.len() + tst.outcomes.len(), total);
+        let above_marker = t.cells.get(0, 1).iter().any(|v| *v > marker);
+        assert!(!above_marker);
+        let above_marker = v.cells.get(0, 1).iter().any(|v| *v > marker);
+        assert!(!above_marker);
+        let below_marker = tst.cells.get(0, 1).iter().any(|v| *v <= marker);
+        assert!(!below_marker);
     }
 
     #[test]

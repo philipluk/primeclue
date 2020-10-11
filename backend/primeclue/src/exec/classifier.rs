@@ -30,6 +30,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
+use std::path::PathBuf;
 
 #[derive(Copy, Clone, Debug, Serialize)]
 pub struct ClassifierScore {
@@ -85,6 +86,12 @@ impl Classifier {
             val += tree.score().value();
         }
         Some(val / self.trees.len() as f32)
+    }
+
+    pub fn save(&self, path: &PathBuf, name: String) -> Result<usize, PrimeclueErr> {
+        let mut ser = Serializator::new();
+        self.serialize(&mut ser);
+        ser.save(path, format!("{}.ssd", name).as_str())
     }
 
     pub fn node_count(&self) -> usize {
