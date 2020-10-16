@@ -41,7 +41,6 @@ pub struct ClassTraining {
     objective: Objective,
     size: usize,
     node_limit: usize,
-    input_shape: InputShape,
     forbidden_cols: Vec<usize>,
     best_tree: Option<ScoredTree>,
     class: Class,
@@ -59,7 +58,6 @@ impl ClassTraining {
     #[must_use]
     pub fn new(
         size: usize,
-        input_shape: &InputShape,
         forbidden_cols: Vec<usize>,
         objective: Objective,
         class: Class,
@@ -68,7 +66,6 @@ impl ClassTraining {
         ClassTraining {
             next_id: GroupId(1),
             size,
-            input_shape: *input_shape,
             forbidden_cols,
             groups,
             node_limit: 5_000_000,
@@ -93,7 +90,7 @@ impl ClassTraining {
     }
 
     pub fn next_generation(&mut self, training_data: &DataView, verification_data: &DataView) {
-        self.fill_up();
+        self.fill_up(training_data.input_shape());
         let objective = self.objective;
         let class = self.class;
         let length = self.size;
@@ -130,11 +127,12 @@ impl ClassTraining {
         }
     }
 
-    fn fill_up(&mut self) {
+    fn fill_up(&mut self, input_shape: &InputShape) {
         while self.groups.len() < self.size * 2 {
             let id = self.next_id;
             self.next_id.0 += 1;
-            let group = generate_group(self, id, &self.forbidden_cols, self.max_depth);
+            let group =
+                generate_group(self, input_shape, id, &self.forbidden_cols, self.max_depth);
             self.groups.insert(group.id, group);
         }
     }
@@ -274,15 +272,10 @@ impl ClassGroup {
 
 fn generate_group(
     training: &ClassTraining,
+    input_shape: &InputShape,
     id: GroupId,
     forbidden_cols: &[usize],
     max_depth: usize,
 ) -> ClassGroup {
-    ClassGroup::create_random(
-        training.size,
-        &training.input_shape,
-        id,
-        max_depth,
-        forbidden_cols,
-    )
+    ClassGroup::create_random(training.size, &input_shape, id, max_depth, forbidden_cols)
 }

@@ -59,7 +59,6 @@ impl TrainingGroup {
             .map(|class| {
                 ClassTraining::new(
                     size,
-                    training_data.input_shape(),
                     forbidden_cols.to_vec(),
                     objective,
                     Class::new(class as u16),

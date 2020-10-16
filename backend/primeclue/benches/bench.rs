@@ -119,8 +119,7 @@ fn next_generation_bench(c: &mut Criterion) {
     let (training_data, verification_data, _) =
         create_sample_data(1_000).shuffle().into_3_views_split();
 
-    let mut class_training =
-        ClassTraining::new(10, training_data.input_shape(), vec![], AUC, Class::new(0));
+    let mut class_training = ClassTraining::new(10, vec![], AUC, Class::new(0));
     c.bench_function("next_generation", |b| {
         b.iter(|| {
             class_training.next_generation(black_box(&training_data), &verification_data);
