@@ -92,10 +92,11 @@ impl ClassRequest {
     /// * `content`: data string: '1.0,3.0,false\r\n2.0,1.0,true\r\n'
     /// * `ignore_first_row`: use first row in content as header (do not import)
     pub fn simple_csv_request(name: &str, content: String, ignore_first_row: bool) -> Self {
-        let line = &split_to_vec(&content, ",", false)[0];
+        let line = &split_to_vec(&content, ",", ignore_first_row)[0];
         let len = line.len();
         let mut import_columns = vec![true; len];
-        import_columns.insert(len - 1, false);
+        let last = import_columns.get_mut(len - 1).unwrap();
+        *last = false;
 
         ClassRequest {
             content,

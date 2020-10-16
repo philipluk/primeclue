@@ -67,7 +67,7 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     let data = DataSet::read_from_disk(&PathBuf::from(path)).unwrap();
 
     // Use this to remove some data, for example stocks not in uptrend
-    // let data = data.filter(|p| p.data().0.get(0, 7) > 0.0);
+    let data = data.filter(|p| p.data().0.get(0, 7) > 0.0);
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.
@@ -88,7 +88,6 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     while Instant::now().lt(&end_time) {
         training.next_generation();
     }
-
     // Get classifier after training has finished. It will fail if there is no classifier for any of the classes
     let classifier = training.classifier().ok()?;
 
@@ -104,12 +103,21 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     let predictions = classifier.classify(&test_data);
     let mut true_count = 0;
     let mut sum_profit = 0.0;
+    let mut positive = 0;
+    let mut negative = 0;
     for (point, prediction) in test_data.outcomes().iter().zip(predictions) {
         if prediction == "true" {
             true_count += 1;
             sum_profit += point.reward() + point.penalty();
+            let change = point.reward() + point.penalty();
+            if change > 0.0 {
+                positive += 1;
+            } else {
+                negative += 1;
+            }
         }
     }
+    println!("true_count: {}, positive: {}, negative: {}", true_count, positive, negative);
     if true_count > 0 && !sum_profit.is_nan() {
         Some(sum_profit / true_count as f32)
     } else {
