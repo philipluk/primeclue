@@ -17,12 +17,12 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::error::PrimeclueErr;
 use crate::serialization::serializable::Serializable;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use crate::error::PrimeclueErr;
 
 pub const PRIMECLUE_SPACE_SUBSTITUTE: &str = "PRIMECLUE_SPACE_SUBSTITUTE";
 pub const SERIALIZED_FILE_EXT: &str = ".ssd";
