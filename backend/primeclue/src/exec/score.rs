@@ -323,8 +323,8 @@ mod test {
     use crate::data::Outcome;
     use crate::exec::score::Objective::{Accuracy, Cost, AUC};
     use crate::exec::score::{
-        accuracy_threshold, auc_threshold, calculate_accuracy, calculate_cost, cost_threshold,
-        Score, Threshold,
+        accuracy_threshold, auc_threshold, calculate_accuracy, calculate_auc, calculate_cost,
+        cost_threshold, Score, Threshold,
     };
     use crate::serialization::serializator::test::test_serialization;
     use std::cmp::Ordering::Equal;
@@ -381,6 +381,36 @@ mod test {
             Score { objective: AUC, class, value: 1_000_001.0, threshold: Threshold::new(0.0) };
         assert_eq!(s1.partial_cmp(&s2).unwrap(), Equal);
         assert_eq!(s1, s2);
+    }
+
+    #[test]
+    fn test_auc_correctness() {
+        let p = Class::new(1);
+        let n = Class::new(0);
+        let predictions = vec![
+            (0.01, Outcome::new(p, 1.0, -1.0)),
+            (0.04, Outcome::new(p, 1.0, -1.0)),
+            (0.11, Outcome::new(n, 1.0, -1.0)),
+            (0.12, Outcome::new(p, 1.0, -1.0)),
+            (0.15, Outcome::new(p, 1.0, -1.0)),
+            (0.19, Outcome::new(p, 1.0, -1.0)),
+            (0.22, Outcome::new(n, 1.0, -1.0)),
+            (0.23, Outcome::new(n, 1.0, -1.0)),
+            (0.31, Outcome::new(p, 1.0, -1.0)),
+            (0.33, Outcome::new(n, 1.0, -1.0)),
+            (0.39, Outcome::new(p, 1.0, -1.0)),
+            (0.42, Outcome::new(n, 1.0, -1.0)),
+            (0.43, Outcome::new(p, 1.0, -1.0)),
+            (0.49, Outcome::new(n, 1.0, -1.0)),
+            (0.51, Outcome::new(n, 1.0, -1.0)),
+            (0.55, Outcome::new(n, 1.0, -1.0)),
+            (0.60, Outcome::new(p, 1.0, -1.0)),
+            (0.70, Outcome::new(n, 1.0, -1.0)),
+            (0.80, Outcome::new(p, 1.0, -1.0)),
+            (0.90, Outcome::new(n, 1.0, -1.0)),
+        ];
+        let auc = calculate_auc(&predictions, n);
+        assert_eq!(auc, 0.68)
     }
 
     #[test]
