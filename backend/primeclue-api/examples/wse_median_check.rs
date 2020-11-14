@@ -74,7 +74,7 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     // Here data is split with "marker" to decide which points go to testing set. Data is
     // imported with 'date' column which is used to recognize points in years 2017 and later.
     let (training_data, verification_data, test_data) =
-        data.split_with_test_data_marker(|p| p.data().0.get(0, 0) > 2017_00_00 as f32);
+        data.split_with_test_data_marker(|p| p.data().0.get(0, 0) >= 2017_00_00 as f32);
 
     // Get some loop break condition. Here it's time limit, regardless of result or generation count
     let end_time = Instant::now().add(std::time::Duration::from_secs(seconds as u64));
