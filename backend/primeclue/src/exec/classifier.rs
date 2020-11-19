@@ -88,7 +88,7 @@ impl Classifier {
         Some(val / self.trees.len() as f32)
     }
 
-    pub fn save(&self, path: &PathBuf, name: String) -> Result<usize, PrimeclueErr> {
+    pub fn save(&self, path: &PathBuf, name: &str) -> Result<usize, PrimeclueErr> {
         let mut ser = Serializator::new();
         self.serialize(&mut ser);
         ser.save(path, format!("{}.ssd", name).as_str())
@@ -148,7 +148,7 @@ impl Classifier {
                 penalty += outcome.penalty();
             }
         }
-        let accuracy = 100.0 * correct as f32 / total as f32;
+        let accuracy = correct as f32 / total as f32;
         let cost = reward + penalty;
         Some(ClassifierScore { auc, accuracy, cost })
     }
@@ -197,11 +197,9 @@ mod test {
 
     #[test]
     fn serialize_classifier() {
-        let forbidden_cols = vec![];
         for _ in 0..10 {
             let (d1, d2, _) = create_simple_data(100).shuffle().into_3_views_split();
-            let mut training_group =
-                TrainingGroup::new(d1, d2, AUC, 5, &forbidden_cols).unwrap();
+            let mut training_group = TrainingGroup::new(d1, d2, AUC, 5, &[]).unwrap();
             loop {
                 training_group.next_generation();
                 if let Ok(classifier) = training_group.classifier() {

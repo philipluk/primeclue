@@ -23,6 +23,7 @@ use crate::data::InputShape;
 use crate::exec::functions::DoubleArgFunction;
 use crate::exec::node::{Node, Weighted};
 use crate::exec::score::{calc_score, Objective, Score};
+use crate::math::valid;
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 use rand::Rng;
@@ -130,14 +131,7 @@ impl Tree {
             None
         } else {
             let guesses = self.execute(data);
-            let mut change = false;
-            for v in &guesses {
-                if !v.is_finite() {
-                    return None;
-                }
-                change = change || (*v - guesses[0]).abs() > 0.001;
-            }
-            if !change {
+            if !valid(&guesses) {
                 return None;
             }
             let outcomes = sort_guesses(guesses, data.outcomes());

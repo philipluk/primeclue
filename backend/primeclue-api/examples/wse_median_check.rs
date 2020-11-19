@@ -17,8 +17,9 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use primeclue::data::data_set::DataSet;
+use primeclue::data::data_set::{DataSet, DataView};
 use primeclue::error::PrimeclueErr;
+use primeclue::exec::classifier::Classifier;
 use primeclue::exec::score::Objective;
 use primeclue::exec::training_group::TrainingGroup;
 use primeclue::math::median;
@@ -47,7 +48,7 @@ fn main() -> Result<(), PrimeclueErr> {
     let count = 20;
     let mut results = Vec::with_capacity(count);
     for run in 0..count {
-        if let Some(result) = check_once(&path, seconds, run) {
+        if let Some(result) = check_once(&path, seconds) {
             results.push(result);
             println!("Loop #{} of {} result: {} ", run + 1, count, result);
         } else {
@@ -62,7 +63,7 @@ fn main() -> Result<(), PrimeclueErr> {
     Ok(())
 }
 
-fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
+fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Read data from disk. Data must be in Primeclue's format, i.e. imported to `data.ssd` file.
     let data = DataSet::read_from_disk(&PathBuf::from(path)).unwrap();
 
@@ -82,7 +83,7 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
-        TrainingGroup::new(training_data, verification_data, Objective::AUC, 100, &[0]).ok()?;
+        TrainingGroup::new(training_data, verification_data, Objective::AUC, 10, &[0]).ok()?;
 
     // Actual training happens here
     while Instant::now().lt(&end_time) {
@@ -100,16 +101,21 @@ fn check_once(path: &str, seconds: usize, _run: usize) -> Option<f32> {
     // Some(classifier.score(&test_data)?.auc)
 
     // Use the following code to get average profit for all "true" label predictions
+    average_per_true(&test_data, &classifier)
+}
+
+fn average_per_true(test_data: &DataView, classifier: &Classifier) -> Option<f32> {
     let predictions = classifier.classify(&test_data);
     let mut true_count = 0;
     let mut sum_profit = 0.0;
     let mut positive = 0;
     let mut negative = 0;
+
     for (point, prediction) in test_data.outcomes().iter().zip(predictions) {
         if prediction == "true" {
             true_count += 1;
-            sum_profit += point.reward() + point.penalty();
             let change = point.reward() + point.penalty();
+            sum_profit += change;
             if change > 0.0 {
                 positive += 1;
             } else {

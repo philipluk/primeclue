@@ -180,6 +180,24 @@ pub fn get_header_row(
         }
     }
 }
+pub fn remove_column<'a>(
+    content: &mut Vec<Vec<&'a str>>,
+    column: usize,
+) -> Result<Vec<&'a str>, PrimeclueErr> {
+    let mut col_values = Vec::with_capacity(content.len());
+    for row in content.iter_mut() {
+        if column >= row.len() {
+            return PrimeclueErr::result(format!(
+                "Unable to remove {}th column, only {} columns present",
+                column,
+                row.len()
+            ));
+        }
+        let v = row.remove(column);
+        col_values.push(v);
+    }
+    Ok(col_values)
+}
 
 pub fn split_to_vec<'a>(
     content: &'a str,
@@ -265,7 +283,7 @@ pub fn build_numbers_row(
     Ok(num_row)
 }
 
-fn build_class_map(
+pub fn build_class_map(
     data: &[Vec<&str>],
     column: usize,
 ) -> Result<HashMap<String, Class>, PrimeclueErr> {

@@ -82,13 +82,12 @@ pub struct DataView {
 }
 
 impl DataView {
-    pub fn add_column(mut self, column: Vec<f32>) -> Result<Self, PrimeclueErr> {
+    pub fn add_column(&mut self, column: Vec<f32>) -> Result<(), PrimeclueErr> {
         if self.cells.input_shape().rows() > 1 {
             PrimeclueErr::result("Unable to add column to multi-rows data".to_string())
         } else {
-            // self.input_shape = InputShape::new(1, self.input_shape.columns() + 1);
             self.cells.add_last(column);
-            Ok(self)
+            Ok(())
         }
     }
 
@@ -437,11 +436,11 @@ pub(crate) mod test {
             Outcome::new(Class::new(0), 1.0, -1.0),
         ))
         .unwrap();
-        let view = data.into_view();
+        let mut view = data.into_view();
         assert_eq!(view.input_shape(), &InputShape::new(1, 2));
         assert_eq!(view.cells.get(0, 0), &[1.0, 10.0, 100.0]);
         assert_eq!(view.cells.get(0, 1), &[2.0, 20.0, 200.0]);
-        let view = view.add_column(vec![3.0, 30.0, 300.0]).unwrap();
+        view.add_column(vec![3.0, 30.0, 300.0]).unwrap();
         assert_eq!(view.input_shape(), &InputShape::new(1, 3));
         assert_eq!(view.cells.get(0, 0), &[1.0, 10.0, 100.0]);
         assert_eq!(view.cells.get(0, 1), &[2.0, 20.0, 200.0]);

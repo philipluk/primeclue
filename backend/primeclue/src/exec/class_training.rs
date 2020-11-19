@@ -25,7 +25,8 @@ use crate::exec::scored_tree::ScoredTree;
 use crate::exec::tree::Tree;
 use crate::rand::GET_RNG;
 use rand::Rng;
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+use rayon::iter::IntoParallelRefMutIterator;
+use rayon::iter::ParallelIterator;
 use serde::export::fmt::Error;
 use serde::export::Formatter;
 use std::cmp::Ordering::Equal;
@@ -45,7 +46,6 @@ pub struct ClassTraining {
     best_tree: Option<ScoredTree>,
     class: Class,
     groups: HashMap<GroupId, ClassGroup>,
-    max_depth: usize,
 }
 
 impl Debug for ClassTraining {
@@ -72,7 +72,6 @@ impl ClassTraining {
             best_tree: None,
             objective,
             class,
-            max_depth: 3, // TODO refactor into parameter from frontend
         }
     }
 
@@ -131,8 +130,7 @@ impl ClassTraining {
         while self.groups.len() < self.size * 2 {
             let id = self.next_id;
             self.next_id.0 += 1;
-            let group =
-                generate_group(self, input_shape, id, &self.forbidden_cols, self.max_depth);
+            let group = generate_group(self, input_shape, id, &self.forbidden_cols, 3);
             self.groups.insert(group.id, group);
         }
     }
