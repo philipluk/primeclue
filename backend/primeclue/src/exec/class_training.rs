@@ -33,6 +33,8 @@ use std::cmp::Ordering::Equal;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::mem::replace;
+use std::ops::Add;
+use std::time::Duration;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 struct GroupId(u64);
@@ -95,9 +97,12 @@ impl ClassTraining {
         let length = self.size;
         let forbidden_cols = &self.forbidden_cols;
         self.groups.par_iter_mut().for_each(|(_, group)| {
-            group.breed(forbidden_cols, length);
-            group.execute_and_score(objective, training_data, class);
-            group.remove_weak_trees(length);
+            let end_time = std::time::Instant::now().add(Duration::from_secs(1));
+            while std::time::Instant::now().lt(&end_time) {
+                group.breed(forbidden_cols, length);
+                group.execute_and_score(objective, training_data, class);
+                group.remove_weak_trees(length);
+            }
         });
         self.remove_empty_groups();
         self.select_best(verification_data);
