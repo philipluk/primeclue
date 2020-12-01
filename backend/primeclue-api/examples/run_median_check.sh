@@ -6,8 +6,8 @@ run() {
 }
 
 set -e
-run breast_cancer
 run companies
+run breast_cancer
 run credit_card_default
 run crime
 run heart
