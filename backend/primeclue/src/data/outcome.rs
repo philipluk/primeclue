@@ -73,14 +73,13 @@ impl Outcome {
     }
 
     pub fn calculate_cost(&self, guess: bool, class: Class) -> f32 {
-        if class == self.class {
-            if guess {
+        match guess {
+            false => 0.0,
+            true => if class == self.class {
                 self.reward
             } else {
                 self.penalty
             }
-        } else {
-            0.0
         }
     }
 
@@ -146,22 +145,22 @@ mod test {
 
     #[test]
     fn calc_reward_penalty() {
-        let class_true = Class::new(1);
-        let class_false = Class::new(0);
+        let class_profit = Class::new(1);
+        let class_loss = Class::new(0);
         let reward = 1.0f32;
         let penalty = -1.0f32;
-        let outcome_true = Outcome::new(class_true, reward, penalty);
-        let outcome_false = Outcome::new(class_false, reward, penalty);
+        let outcome_profit = Outcome::new(class_profit, reward, penalty);
+        let outcome_loss = Outcome::new(class_loss, reward, penalty);
         let guess_true = true;
         let guess_false = false;
-        assert_eq!(outcome_true.calculate_cost(guess_true, class_true), reward);
-        assert_eq!(outcome_true.calculate_cost(guess_false, class_true), penalty);
-        assert_eq!(outcome_true.calculate_cost(guess_true, class_false), 0.0);
-        assert_eq!(outcome_true.calculate_cost(guess_false, class_false), 0.0);
+        assert_eq!(outcome_profit.calculate_cost(guess_true, class_profit), reward);
+        assert_eq!(outcome_profit.calculate_cost(guess_false, class_profit), 0.0);
+        assert_eq!(outcome_profit.calculate_cost(guess_true, class_loss), penalty);
+        assert_eq!(outcome_profit.calculate_cost(guess_false, class_loss), 0.0);
 
-        assert_eq!(outcome_false.calculate_cost(guess_true, class_false), reward);
-        assert_eq!(outcome_false.calculate_cost(guess_false, class_false), penalty);
-        assert_eq!(outcome_false.calculate_cost(guess_true, class_true), 0.0);
-        assert_eq!(outcome_false.calculate_cost(guess_false, class_true), 0.0);
+        assert_eq!(outcome_loss.calculate_cost(guess_true, class_loss), reward);
+        assert_eq!(outcome_loss.calculate_cost(guess_false, class_loss), 0.0);
+        assert_eq!(outcome_loss.calculate_cost(guess_true, class_profit), penalty);
+        assert_eq!(outcome_loss.calculate_cost(guess_false, class_profit), 0.0);
     }
 }

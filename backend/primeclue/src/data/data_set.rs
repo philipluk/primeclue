@@ -105,7 +105,7 @@ impl DataView {
         let mut rng = GET_RNG();
         for outcome in &self.outcomes {
             cost += outcome.calculate_cost(
-                rng.gen_bool(0.5),
+                true,
                 Class::new(rng.gen_range(0, self.class_map.len()) as u16),
             );
         }
