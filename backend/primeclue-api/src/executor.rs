@@ -99,17 +99,19 @@ impl Executor {
 
     pub(crate) fn prepare_new_job(&mut self) -> (JobId, StatusCallback) {
         let id = self.next_id;
-        self.next_id += 1;
         self.status_map.lock().unwrap().insert(id, Status::Pending);
         let sender = self.status_sender.clone();
+        self.next_id += 1;
         (id, Box::new(move |status| sender.send(status, id)))
     }
 
     pub(crate) fn status(&mut self, job_id: JobId) -> Option<Status> {
         let mut map = self.status_map.lock().unwrap();
         if let Some(status) = map.get(&job_id) {
+            dbg!(status);
             return if status.is_final() { map.remove(&job_id) } else { Some(status.clone()) };
         }
+        dbg!("None");
         None
     }
 

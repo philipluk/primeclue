@@ -90,6 +90,8 @@ pub fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
 }
 
 fn empty(name: &DirEntry) -> Result<bool, PrimeclueErr> {
-    let mut list = fs::read_dir(name.path())?;
-    Ok(list.next().is_none())
+    match fs::read_dir(name.path()) {
+        Ok(mut list) => Ok(list.next().is_none()),
+        Err(_) => Ok(true)
+    }
 }
