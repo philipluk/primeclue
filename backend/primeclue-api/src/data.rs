@@ -30,12 +30,19 @@ use std::{fs, thread};
 pub(crate) fn remove(name: &str) -> Result<(), PrimeclueErr> {
     let settings = Settings::new()?;
     let org_path = Path::new(settings.base_dir()).join(DATA_DIR).join(name);
+    dbg!(&org_path);
     let remove_path = Path::new(settings.base_dir())
         .join(DATA_DIR)
         .join(format!("{}_{}", DELETE_IN_PROGRESS, name));
+    dbg!(&remove_path);
+    if remove_path.exists() {
+        fs::remove_dir_all(&remove_path).map_err(|e| format!("Unable to remove temporary dir {:?}: {:?}", remove_path, e))?
+    }
     fs::rename(org_path, remove_path.clone())?;
     thread::spawn(move || {
-        fs::remove_dir_all(&remove_path).unwrap();
+        if let Err(e) = fs::remove_dir_all(&remove_path) {
+            println!("Unable to remove temporary dir {:?}: {:?}", remove_path, e);
+        }
     });
     Ok(())
 }
