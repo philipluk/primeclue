@@ -190,17 +190,5 @@ mod test {
         training_group.next_generation();
         assert_eq!(training_group.generation(), 3)
     }
-
-    #[test]
-    fn test_simple_training() {
-        let data = create_simple_data(1_000);
-        let (training_data, verification_data, test_data) = data.shuffle().into_3_views_split();
-        let mut training_group =
-            TrainingGroup::new(training_data, verification_data, AUC, 10, &[]).unwrap();
-        for _ in 0..50 {
-            training_group.next_generation();
-        }
-        let tst_score = training_group.classifier().unwrap().score(&test_data).unwrap().auc;
-        assert!(1.0 - tst_score < 0.001);
-    }
+    
 }
