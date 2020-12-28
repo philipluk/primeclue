@@ -83,7 +83,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
-        TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[0, 14, 15, 16, 17, 18, 19, 20, 21, 35, 36, 37, 38, 39, 40, 41, 42]).ok()?;
+        TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[0]).ok()?;
         //TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[0, 14, 15, 16, 17, 18, 19, 20, 21, 35, 36, 37, 38, 39, 40, 41, 42]).ok()?;
 
     // Actual training happens here
