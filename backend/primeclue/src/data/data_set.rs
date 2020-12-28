@@ -104,10 +104,14 @@ impl DataView {
         let mut cost = 0.0;
         let mut rng = GET_RNG();
         for outcome in &self.outcomes {
-            cost += outcome.calculate_cost(
-                true,
-                Class::new(rng.gen_range(0, self.class_map.len()) as u16),
-            );
+            let mut index = rng.gen_range(0, self.outcomes.len()) as i32;
+            for (class, count) in &self.class_count {
+                index -= *count as i32;
+                if index <= 0 {
+                    cost += outcome.calculate_cost(true, *class);
+                    break;
+                }
+            }
         }
         cost
     }

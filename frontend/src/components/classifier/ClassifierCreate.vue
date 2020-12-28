@@ -224,7 +224,7 @@ export default {
             node_count: tick.stats.node_count,
             training_score: tick.stats.training_score.toFixed(3),
             test_auc: tick.classifier_score.auc.toFixed(2),
-            test_accuracy: tick.classifier_score.accuracy.toFixed(1),
+            test_accuracy: tick.classifier_score.accuracy.toFixed(3),
             test_cost: tick.classifier_score.cost.toFixed(1)
           };
           this.progress_data.push(p);
