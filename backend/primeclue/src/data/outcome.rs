@@ -75,10 +75,12 @@ impl Outcome {
     pub fn calculate_cost(&self, guess: bool, class: Class) -> f32 {
         match guess {
             false => 0.0,
-            true => if class == self.class {
-                self.reward
-            } else {
-                self.penalty
+            true => {
+                if class == self.class {
+                    self.reward
+                } else {
+                    self.penalty
+                }
             }
         }
     }

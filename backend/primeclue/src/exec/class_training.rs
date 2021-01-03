@@ -20,10 +20,13 @@
 use crate::data::data_set::DataView;
 use crate::data::outcome::Class;
 use crate::data::InputShape;
+use crate::exec::functions::TWO_ARG_FUNCTIONS;
 use crate::exec::score::{Objective, Score};
 use crate::exec::scored_tree::ScoredTree;
 use crate::exec::tree::Tree;
 use crate::rand::GET_RNG;
+use rand::prelude::SliceRandom;
+use rand::seq::IteratorRandom;
 use rand::Rng;
 use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
@@ -95,9 +98,9 @@ impl ClassTraining {
         let length = self.size;
         let forbidden_cols = &self.forbidden_cols;
         self.groups.par_iter_mut().for_each(|(_, group)| {
-                group.breed(forbidden_cols, length);
-                group.execute_and_score(objective, training_data, class);
-                group.remove_weak_trees(length);
+            group.breed(forbidden_cols, length);
+            group.execute_and_score(objective, training_data, class);
+            group.remove_weak_trees(length);
         });
         self.remove_empty_groups();
         self.select_best(verification_data);
@@ -114,6 +117,7 @@ impl ClassTraining {
             self.groups.values().map(|p| (p.id, p.nodes_count())).collect::<Vec<_>>();
         let sum = sizes.iter().map(|(_, s)| s).sum::<usize>();
         if sum > self.node_limit {
+            println!("Reducing total nodes ({} nodes in population)", sum);
             sizes.sort_by(|(_, s1), (_, s2)| s1.cmp(s2));
             let mut so_far = 0;
             for (id, size) in sizes {
@@ -171,6 +175,16 @@ impl ClassTraining {
             );
             best_now.set_score(score);
             if self.best_tree.is_none() || (&best_now > self.best_tree.as_ref().unwrap()) {
+                println!(
+                    "New best tree for class {}: score: {} nodes: {}, replacing: {}",
+                    self.class,
+                    score.value(),
+                    best_now.node_count(),
+                    self.best_tree
+                        .as_ref()
+                        .map(|t| format!("{} / {}", t.score().value(), t.node_count()))
+                        .unwrap_or_else(|| "(None)".to_owned())
+                );
                 self.best_tree = Some(best_now);
             }
         }
@@ -203,6 +217,24 @@ impl Debug for ClassGroup {
 }
 
 impl ClassGroup {
+    fn create_joined(
+        group_size: usize,
+        existing: &HashMap<GroupId, ClassGroup>,
+        id: GroupId,
+        forbidden_cols: &[usize],
+    ) -> Option<Self> {
+        let mut rng = GET_RNG();
+        let tree1 = existing.values().choose(&mut rng)?.scored.iter().choose(&mut rng)?.tree();
+        let tree2 = existing.values().choose(&mut rng)?.scored.iter().choose(&mut rng)?.tree();
+        let tree = Tree::from_two(
+            TWO_ARG_FUNCTIONS.choose(&mut rng).unwrap(),
+            tree1.get_start_node().clone(),
+            tree2.get_start_node().clone(),
+            *tree1.input_shape(),
+        );
+        Some(ClassGroup::create_from_tree(group_size, id, tree, forbidden_cols))
+    }
+
     fn create_random(
         group_size: usize,
         input_shape: &InputShape,
@@ -275,5 +307,13 @@ fn generate_group(
     forbidden_cols: &[usize],
     max_depth: usize,
 ) -> ClassGroup {
+    let mut rng = GET_RNG();
+    if !training.groups.is_empty() && rng.gen_bool(0.5) {
+        if let Some(group) =
+            ClassGroup::create_joined(training.size, &training.groups, id, forbidden_cols)
+        {
+            return group;
+        }
+    }
     ClassGroup::create_random(training.size, &input_shape, id, max_depth, forbidden_cols)
 }

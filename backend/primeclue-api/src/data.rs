@@ -34,9 +34,12 @@ pub(crate) fn remove(name: &str) -> Result<(), PrimeclueErr> {
         .join(DATA_DIR)
         .join(format!("{}_{}", DELETE_IN_PROGRESS, name));
     if remove_path.exists() {
-        fs::remove_dir_all(&remove_path).map_err(|e| format!("Unable to remove temporary dir {:?}: {:?}", remove_path, e))?;
+        fs::remove_dir_all(&remove_path)
+            .map_err(|e| format!("Unable to remove temporary dir {:?}: {:?}", remove_path, e))?;
     }
-    fs::rename(&org_path, remove_path.clone()).map_err(|e| format!("Unable to rename to temporary dir {:?} -> {:?}: {:?}", org_path, remove_path, e))?;
+    fs::rename(&org_path, remove_path.clone()).map_err(|e| {
+        format!("Unable to rename to temporary dir {:?} -> {:?}: {:?}", org_path, remove_path, e)
+    })?;
     thread::spawn(move || {
         if let Err(e) = fs::remove_dir_all(&remove_path) {
             println!("Unable to remove temporary dir {:?}: {:?}", remove_path, e);

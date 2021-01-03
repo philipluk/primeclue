@@ -30,7 +30,7 @@ use std::collections::HashMap;
 // have values in range > 200 && <= 300. Values in this range were not observed during training.
 
 // Run with : cargo run --release --example test_training
-// Average score on unseen data: 0.64
+// Average score on unseen data: 0.66
 fn main() {
     let mut sum = 0.0;
     let count = 100;

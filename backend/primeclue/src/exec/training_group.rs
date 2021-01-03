@@ -190,5 +190,4 @@ mod test {
         training_group.next_generation();
         assert_eq!(training_group.generation(), 3)
     }
-    
 }
