@@ -18,11 +18,9 @@
 */
 
 use crate::serialization::{Deserializable, Serializable, Serializator};
-use serde::export::fmt::Error;
-use serde::export::Formatter;
 use std::cmp::Ordering;
 use std::f32::consts::*;
-use std::fmt::Debug;
+use std::fmt::{Debug, Error, Formatter};
 
 pub static MATH_CONSTANTS: [MathConst; 6] = [
     MathConst { name: "0", value: 0.0 },

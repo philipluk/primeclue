@@ -18,10 +18,9 @@
 */
 
 use crate::serialization::{Deserializable, Serializable, Serializator};
-use serde::export::Formatter;
 use std::cmp::Ordering;
 use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Copy, Default, PartialEq, Debug, Eq, Hash, serde::Serialize)]
 pub struct Class(u16);

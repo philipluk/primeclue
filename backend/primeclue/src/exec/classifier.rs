@@ -24,12 +24,11 @@ use crate::error::PrimeclueErr;
 use crate::exec::score::calculate_auc;
 use crate::exec::scored_tree::ScoredTree;
 use crate::serialization::{Deserializable, Serializable, Serializator};
-use serde::export::Formatter;
 use serde::Serialize;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 
 #[derive(Copy, Clone, Debug, Serialize)]

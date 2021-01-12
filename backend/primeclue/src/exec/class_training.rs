@@ -30,11 +30,9 @@ use rand::seq::IteratorRandom;
 use rand::Rng;
 use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
-use serde::export::fmt::Error;
-use serde::export::Formatter;
 use std::cmp::Ordering::Equal;
 use std::collections::HashMap;
-use std::fmt::Debug;
+use std::fmt::{Debug, Error, Formatter};
 use std::mem::replace;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
