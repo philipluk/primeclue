@@ -94,7 +94,7 @@
           <div style="display: inline-flex; text-align: left; margin-left: 20px">
             <div style="padding-top: 15px; width: 470px">
               <div v-if="trainingObjective === 'Cost'" id="rewards">
-                <el-checkbox border="true" size="large" style="width: 470px" v-model="overrideRewards">
+                <el-checkbox :border=true size="large" style="width: 470px" v-model="overrideRewards">
                   Override rewards / penalties
                 </el-checkbox>
                 <div v-if="overrideRewards">
@@ -120,48 +120,45 @@
     <el-table
         :data="progress_data"
         :highlight-current-row="true"
-        border="true"
+        :border=true
         empty-text="No data available"
         style="width: 100%">
       <el-table-column
           prop="time"
           label="Time"
-          width="300"
-          resizable="true"/>
+          width="300"/>
       <el-table-column
           prop="generation"
           label="Generation"
-          width="150"
-          resizable="true"/>
+          width="150"/>
       <el-table-column
           prop="node_count"
           label="Node count"
-          width="150"
-          resizable="true"/>
+          width="150"/>
       <el-table-column
           label="Scores">
         <el-table-column
             prop="training_score"
             label="Training score"
-            resizable="true"/>
+            />
         <el-table-column
             label="Unseen data">
           <el-table-column
             prop="test_auc"
             label="AUC"
-            resizable="true"/>
+            />
           <el-table-column
               prop="test_accuracy"
               label="%"
-              resizable="true"/>
+              />
           <el-table-column
               prop="test_cost"
               label="Cost"
-              resizable="true"/>
+              />
           <el-table-column
               prop="test_labels"
-              label="Labels count"
-              resizable="true"/>
+              label="Guesses"
+              />
         </el-table-column>
       </el-table-column>
     </el-table>
@@ -231,9 +228,11 @@ export default {
             test_accuracy: tick.classifier_score.accuracy.toFixed(3),
             test_cost: tick.classifier_score.cost.toFixed(1),
             test_labels: JSON.stringify(tick.classifier_score.label_count_map)
-                .replace('{','')
-                .replace('}','')
-                .replace(',', ' ')
+                .replaceAll('{','')
+                .replaceAll('}','')
+                .replaceAll(',', ' ')
+                .replaceAll('"','')
+                .replaceAll(':', ': ')
           };
           this.progress_data.push(p);
         }
