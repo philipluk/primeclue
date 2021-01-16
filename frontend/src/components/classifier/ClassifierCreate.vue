@@ -158,6 +158,10 @@
               prop="test_cost"
               label="Cost"
               resizable="true"/>
+          <el-table-column
+              prop="test_labels"
+              label="Labels count"
+              resizable="true"/>
         </el-table-column>
       </el-table-column>
     </el-table>
@@ -225,7 +229,11 @@ export default {
             training_score: tick.stats.training_score.toFixed(3),
             test_auc: tick.classifier_score.auc.toFixed(2),
             test_accuracy: tick.classifier_score.accuracy.toFixed(3),
-            test_cost: tick.classifier_score.cost.toFixed(1)
+            test_cost: tick.classifier_score.cost.toFixed(1),
+            test_labels: JSON.stringify(tick.classifier_score.label_count_map)
+                .replace('{','')
+                .replace('}','')
+                .replace(',', ' ')
           };
           this.progress_data.push(p);
         }

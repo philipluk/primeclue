@@ -27,21 +27,14 @@ use crate::serialization::{Deserializable, Serializable, Serializator};
 use serde::Serialize;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fmt;
-use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 
-#[derive(Copy, Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ClassifierScore {
     pub auc: f32,
     pub accuracy: f32,
     pub cost: f32,
-}
-
-impl Display for ClassifierScore {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:.2} AUC / {:.1}% / {:.1} Cost", self.auc, self.accuracy, self.cost)
-    }
+    pub label_count_map: HashMap<String, usize>,
 }
 
 /// A structure containing a classifier trained via [`TrainingGroup`]
@@ -130,6 +123,7 @@ impl Classifier {
     pub fn score(&self, data: &DataView) -> Option<ClassifierScore> {
         let auc = self.execute_for_auc(data)?;
         let predictions = self.classify(data);
+        let mut label_count_map = HashMap::new();
         let mut correct = 0;
         let mut total = 0;
         let mut reward = 0.0;
@@ -138,6 +132,9 @@ impl Classifier {
             if prediction.is_empty() {
                 continue;
             }
+            let label = (*prediction).to_owned();
+            let class_count = label_count_map.remove(&label).unwrap_or(0);
+            label_count_map.insert(label, class_count + 1);
             total += 1;
             let expected = data.class_map().get(&outcome.class())?;
             if prediction == expected {
@@ -149,7 +146,7 @@ impl Classifier {
         }
         let accuracy = correct as f32 / total as f32;
         let cost = reward + penalty;
-        Some(ClassifierScore { auc, accuracy, cost })
+        Some(ClassifierScore { auc, accuracy, cost, label_count_map })
     }
 
     fn calc_tree_auc(tree: &ScoredTree, data: &DataView) -> Option<f32> {
