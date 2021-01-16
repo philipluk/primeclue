@@ -104,14 +104,10 @@ impl DataView {
         let mut cost = 0.0;
         let mut rng = GET_RNG();
         for outcome in &self.outcomes {
-            let mut index = rng.gen_range(0, self.outcomes.len()) as i32;
-            for (class, count) in &self.class_count {
-                index -= *count as i32;
-                if index <= 0 {
-                    cost += outcome.calculate_cost(true, *class);
-                    break;
-                }
-            }
+            let p = *self.class_count.get(&outcome.class()).unwrap() as f64
+                / self.outcomes.len() as f64;
+            let guess = rng.gen_bool(p);
+            cost += outcome.calculate_cost(guess, outcome.class());
         }
         cost
     }
