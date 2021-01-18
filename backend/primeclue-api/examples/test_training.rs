@@ -55,7 +55,7 @@ fn training_success(attempt: usize) -> f32 {
     let mut rng = GET_RNG();
     let max = 100;
     for i in 0..3 {
-        for _ in 0..500 {
+        for _ in 0..1_000 {
             let a = i * max + rng.gen_range(0, max);
             let b = i * max + rng.gen_range(0, max);
             let c = i * max + rng.gen_range(0, max);

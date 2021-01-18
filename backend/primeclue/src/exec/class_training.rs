@@ -265,9 +265,18 @@ impl ClassGroup {
     }
 
     fn breed(&mut self, forbidden_cols: &[usize], count: usize) {
-        if let Some(child) = ScoredTree::best_tree(&self.scored).map(|t| t.tree()) {
-            while self.fresh.len() < count {
-                let mut child = child.clone();
+        let mut rng = GET_RNG();
+        while self.fresh.len() < count {
+            if let Some(tree) = self.scored.choose(&mut rng).map(|t| t.tree()) {
+                let mut child = tree.clone();
+                child.mutate(forbidden_cols);
+                self.fresh.push(child);
+
+                let mut child = tree.clone();
+                child.change_weights();
+                self.fresh.push(child);
+
+                let mut child = tree.clone();
                 child.mutate(forbidden_cols);
                 child.change_weights();
                 self.fresh.push(child);

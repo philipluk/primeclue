@@ -15,4 +15,3 @@ run hepatitis
 run adult
 run banknote
 run online_news
-run fizz_buzz
