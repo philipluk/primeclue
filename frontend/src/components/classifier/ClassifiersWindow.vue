@@ -14,12 +14,14 @@
                     label="Operations"
                     width="200">
                 <template slot-scope="scope">
+                  <el-popconfirm style="margin-right: 20pt" title="Are you sure to delete" cancel-button-text="Cancel" confirm-button-text="Delete" v-on:confirm="remove(scope.$index)">
                     <el-button
-                            @click.native.prevent="remove(scope.$index)"
-                            type="text"
-                            size="small">
-                        Remove
+                        slot="reference"
+                        type="text"
+                        size="small">
+                      Remove
                     </el-button>
+                  </el-popconfirm>
                     <el-button
                             @click.native.prevent="classify(scope.$index)"
                             type="text"
@@ -34,7 +36,7 @@
 </template>
 
 <script>
-    import {http} from '../../http';
+    import {http} from '@/http';
 
     export default {
         name: "classifiersWindow",
