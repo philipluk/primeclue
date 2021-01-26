@@ -115,7 +115,6 @@ impl ClassTraining {
             self.groups.values().map(|p| (p.id, p.nodes_count())).collect::<Vec<_>>();
         let sum = sizes.iter().map(|(_, s)| s).sum::<usize>();
         if sum > self.node_limit {
-            println!("Reducing total nodes ({} nodes in population)", sum);
             sizes.sort_by(|(_, s1), (_, s2)| s1.cmp(s2));
             let mut so_far = 0;
             for (id, size) in sizes {
@@ -173,16 +172,6 @@ impl ClassTraining {
             );
             best_now.set_score(score);
             if self.best_tree.is_none() || (&best_now > self.best_tree.as_ref().unwrap()) {
-                println!(
-                    "New best tree for class {}: score: {} nodes: {}, replacing: {}",
-                    self.class,
-                    score.value(),
-                    best_now.node_count(),
-                    self.best_tree
-                        .as_ref()
-                        .map(|t| format!("{} / {}", t.score().value(), t.node_count()))
-                        .unwrap_or_else(|| "(None)".to_owned())
-                );
                 self.best_tree = Some(best_now);
             }
         }
