@@ -1,6 +1,9 @@
 If you'd like some feature implemented, and it's not on the list below, 
 let me know at [lukasz.wojtow@gmail.com](mailto:lukasz.wojtow@gmail.com).<br>
 
+<h4>Allow merging classifiers</h4>
+Merge two classifiers into one from GUI.
+
 <h4>Display cost per data point</h4>
 For Cost objective it would be interesting to see value of cost / data point
 
