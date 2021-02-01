@@ -1,0 +1,9 @@
+Hi,
+I'm Lukasz Wojtow. I'd like to present Primeclue: an artificial intelligence research project.
+
+Primeclue's approach differs from traditional neural networks and decision trees. It builds predictive models out of math functions. A single model is akin to a tree: Data flow starts at trees' leaves, goes through some two-argument functions (addition, multiplication, and so on) where branches merge. The final value at the tree's root is interpreted as a prediction.
+
+It achieves reasonable results on a wide range of data such as adult income, crime rates, banknote verification, and the stock market.
+
+I'm aiming to make it a complete and user-friendly software to be used by non-professionals. It's a bit of MVP now, but it has a GUI and supports my workflow (I use it for fun in the stock market). Primeclue is licensed under AGPL. 
+
