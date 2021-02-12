@@ -74,7 +74,7 @@ pub fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
     for file in list {
         let file = file?;
         let name = file.file_name();
-        if empty(&file)? {
+        if empty(&file) {
             continue;
         }
         let utf_name = name
@@ -89,9 +89,9 @@ pub fn read_files(list: ReadDir) -> Result<Vec<String>, PrimeclueErr> {
     Ok(projects)
 }
 
-fn empty(name: &DirEntry) -> Result<bool, PrimeclueErr> {
+fn empty(name: &DirEntry) -> bool {
     match fs::read_dir(name.path()) {
-        Ok(mut list) => Ok(list.next().is_none()),
-        Err(_) => Ok(true),
+        Ok(mut list) => list.next().is_none(),
+        Err(_) => true,
     }
 }

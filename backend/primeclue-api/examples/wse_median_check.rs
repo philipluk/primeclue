@@ -68,7 +68,7 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     let data = DataSet::read_from_disk(&PathBuf::from(path)).unwrap();
 
     // Use this to remove some data, for example stocks not in uptrend
-    let data = data.filter(|p| p.data().0.get(0, 7) > 0.0);
+    let data = data.filter(|p| p.data().0.get(0, 7) <= 0.0);
 
     // Split data into random parts. Only training and verification sets are used for training,
     // testing set in used to display result to the user.
@@ -83,7 +83,8 @@ fn check_once(path: &str, seconds: usize) -> Option<f32> {
     // Get training object that later will be used to get classifier. Third argument is objective that
     // we want to maximize for. Other types are accuracy (percentage) or cost.
     let mut training =
-        TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[0]).ok()?;
+        // TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[0]).ok()?;
+        TrainingGroup::new(training_data, verification_data, Objective::AUC, 20, &[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]).ok()?;
 
     // Actual training happens here
     while Instant::now().lt(&end_time) {
