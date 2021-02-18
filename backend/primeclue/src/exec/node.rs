@@ -27,6 +27,7 @@ use crate::serialization::serializator::Serializator;
 use crate::serialization::Serializable;
 use rand::{prelude::SliceRandom, Rng};
 use std::{borrow::BorrowMut, ops::Deref, ops::Mul};
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Weight(f32);
@@ -204,6 +205,27 @@ impl Weighted {
         };
         let w = Weight::generate();
         Weighted { w, n: Box::new(n) }
+    }
+
+    pub fn get_used_columns(&self) -> HashSet<usize> {
+        let mut columns = HashSet::new();
+        let mut node_queue = Vec::with_capacity(1024);
+        node_queue.push(self.n.deref());
+        while !node_queue.is_empty() {
+            let next_node = node_queue.remove(0);
+            match next_node {
+                Node::DoubleArgFunction(_, n1, n2) => {
+                    node_queue.push(n1.n.deref());
+                    node_queue.push(n2.n.deref());
+                }
+                Node::SingleArgFunction(_, n) => {
+                    node_queue.push(n.n.deref());
+                }
+                Node::MathConstant(_) => {},
+                Node::DataValue(_, c) | Node::StdDev(_, c) => { columns.insert(*c); }
+            }
+        }
+        columns
     }
 
     pub fn take_node(self, id: usize) -> Weighted {

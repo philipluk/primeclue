@@ -27,6 +27,7 @@ use crate::math::valid;
 use crate::rand::GET_RNG;
 use crate::serialization::{Deserializable, Serializable, Serializator};
 use rand::Rng;
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Tree {
@@ -101,6 +102,10 @@ impl Tree {
 
     pub fn select_node_mut(&mut self, node_id: usize) -> &mut Weighted {
         self.node.select_node_mut(node_id, self.node_count)
+    }
+
+    pub fn get_used_columns(&self) -> HashSet<usize> {
+        self.node.get_used_columns()
     }
 
     #[must_use]
