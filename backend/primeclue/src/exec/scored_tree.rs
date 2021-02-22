@@ -121,7 +121,7 @@ impl ScoredTree {
 #[cfg(test)]
 mod test {
     use crate::data::outcome::Class;
-    use crate::exec::score::Objective::AUC;
+    use crate::exec::score::Objective::Auc;
     use crate::exec::score::{Score, Threshold};
     use crate::exec::scored_tree::ScoredTree;
     use crate::exec::tree::test::{create_long_tree, create_short_tree};
@@ -134,16 +134,16 @@ mod test {
         assert!(ScoredTree::best_tree(&trees).is_none());
 
         let t = create_long_tree();
-        let s = Score::new(AUC, Class::new(0), 0.6, Threshold::new(0.0));
+        let s = Score::new(Auc, Class::new(0), 0.6, Threshold::new(0.0));
         let st = ScoredTree::new(t, s);
         let trees = vec![st];
         assert_eq!(ScoredTree::best_tree(&trees).unwrap(), &trees[0]);
 
         let t1 = create_long_tree();
-        let s1 = Score::new(AUC, Class::new(0), 0.6, Threshold::new(0.0));
+        let s1 = Score::new(Auc, Class::new(0), 0.6, Threshold::new(0.0));
         let st1 = ScoredTree::new(t1, s1);
         let t2 = create_long_tree();
-        let s2 = Score::new(AUC, Class::new(0), 0.8, Threshold::new(0.0));
+        let s2 = Score::new(Auc, Class::new(0), 0.8, Threshold::new(0.0));
         let st2 = ScoredTree::new(t2, s2);
         let trees = vec![st1, st2];
         assert_eq!(ScoredTree::best_tree(&trees).unwrap(), &trees[1]);
@@ -152,10 +152,10 @@ mod test {
         assert_eq!(ScoredTree::best_tree(&trees).unwrap(), &trees[0]);
 
         let t1 = create_short_tree();
-        let s1 = Score::new(AUC, Class::new(0), 0.6, Threshold::new(0.0));
+        let s1 = Score::new(Auc, Class::new(0), 0.6, Threshold::new(0.0));
         let st1 = ScoredTree::new(t1, s1);
         let t2 = create_long_tree();
-        let s2 = Score::new(AUC, Class::new(0), 0.6, Threshold::new(0.0));
+        let s2 = Score::new(Auc, Class::new(0), 0.6, Threshold::new(0.0));
         let st2 = ScoredTree::new(t2, s2);
         let trees = vec![st1, st2];
         assert_eq!(ScoredTree::best_tree(&trees).unwrap(), &trees[0]);
@@ -169,8 +169,8 @@ mod test {
         let short = create_short_tree();
         let long = create_long_tree();
         let class = Class::new(0);
-        let good = Score::new(AUC, class, 1.0, Threshold::new(0.0));
-        let bad = Score::new(AUC, class, 0.6, Threshold::new(0.0));
+        let good = Score::new(Auc, class, 1.0, Threshold::new(0.0));
+        let bad = Score::new(Auc, class, 0.6, Threshold::new(0.0));
         let bad_tree = ScoredTree::new(short, bad);
         let good_tree = ScoredTree::new(long, good);
 
@@ -182,8 +182,8 @@ mod test {
         let short = create_short_tree();
         let long = create_long_tree();
         let class = Class::new(0);
-        let good = Score::new(AUC, class, 1.0, Threshold::new(0.0));
-        let bad = Score::new(AUC, class, 0.6, Threshold::new(0.0));
+        let good = Score::new(Auc, class, 1.0, Threshold::new(0.0));
+        let bad = Score::new(Auc, class, 0.6, Threshold::new(0.0));
         let bad_tree = ScoredTree::new(short, bad);
         let good_tree = ScoredTree::new(long, good);
 
@@ -195,7 +195,7 @@ mod test {
         let short = create_short_tree();
         let long = create_long_tree();
         let class = Class::new(0);
-        let s1 = Score::new(AUC, class, 1.0, Threshold::new(0.0));
+        let s1 = Score::new(Auc, class, 1.0, Threshold::new(0.0));
         let s2 = s1.clone();
         let short_tree = ScoredTree::new(short, s1);
         let long_tree = ScoredTree::new(long, s2);
@@ -208,7 +208,7 @@ mod test {
         let t1 = create_short_tree();
         let t2 = t1.clone();
         let class = Class::new(0);
-        let s1 = Score::new(AUC, class, 1.0, Threshold::new(0.0));
+        let s1 = Score::new(Auc, class, 1.0, Threshold::new(0.0));
         let s2 = s1.clone();
         let st1 = ScoredTree::new(t1, s1);
         let st2 = ScoredTree::new(t2, s2);
@@ -218,7 +218,7 @@ mod test {
     #[test]
     fn serialize() {
         let tree = create_long_tree();
-        let score = Score::new(AUC, Class::new(2), 0.9, Threshold::new(1.0));
+        let score = Score::new(Auc, Class::new(2), 0.9, Threshold::new(1.0));
         let scored_tree = ScoredTree::new(tree, score);
         test_serialization(scored_tree);
     }

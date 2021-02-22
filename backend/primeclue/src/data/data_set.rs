@@ -333,8 +333,8 @@ impl DataSet {
     /// Reads data in Primeclue format from disk
     ///
     /// # Arguments
-    /// * `path` - A [`PathBuf`] pointing to a data directory inside which `data.ssd` file must exist.
-    pub fn read_from_disk(path: &PathBuf) -> Result<DataSet, PrimeclueErr> {
+    /// * `path` - A [`Path`] pointing to a data directory inside which `data.ssd` file must exist.
+    pub fn read_from_disk(path: &Path) -> Result<DataSet, PrimeclueErr> {
         let mut s = Serializator::load(&path.join(DATA_FILE_NAME))?;
         DataSet::deserialize(&mut s)
             .map_err(|e| PrimeclueErr::from(format!("Unable to deserialize data: {}", e)))

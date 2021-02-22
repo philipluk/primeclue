@@ -32,7 +32,7 @@ use std::cmp::Ordering::Equal;
 #[derive(Debug, PartialEq, Copy, Clone, serde::Deserialize, serde::Serialize)]
 pub enum Objective {
     Cost,
-    AUC,
+    Auc,
     Accuracy,
 }
 
@@ -40,7 +40,7 @@ impl Objective {
     pub fn threshold(&self, outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
         match self {
             Objective::Cost => cost_threshold(outcomes, class),
-            Objective::AUC => auc_threshold(outcomes, class),
+            Objective::Auc => auc_threshold(outcomes, class),
             Objective::Accuracy => accuracy_threshold(outcomes, class),
         }
     }
@@ -50,7 +50,7 @@ impl Serializable for Objective {
     fn serialize(&self, s: &mut Serializator) {
         let var = match self {
             Objective::Cost => "Cost",
-            Objective::AUC => "AUC",
+            Objective::Auc => "AUC",
             Objective::Accuracy => "Accuracy",
         };
         s.add_str(var);
@@ -62,7 +62,7 @@ impl Deserializable for Objective {
         let t = s.next_token()?;
         match t.as_ref() {
             "Cost" => Ok(Objective::Cost),
-            "AUC" => Ok(Objective::AUC),
+            "AUC" => Ok(Objective::Auc),
             "Accuracy" => Ok(Objective::Accuracy),
             _ => Err(format!("Invalid token for ScoreType: {}", t)),
         }
@@ -73,7 +73,7 @@ impl fmt::Display for Objective {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
             Objective::Cost => "Cost",
-            Objective::AUC => "AUC",
+            Objective::Auc => "AUC",
             Objective::Accuracy => "Accuracy",
         };
         write!(f, "{}", s)
@@ -209,7 +209,7 @@ pub fn calc_score(
     objective: Objective,
 ) -> Score {
     let value = match objective {
-        Objective::AUC => calculate_auc(&outcomes, class),
+        Objective::Auc => calculate_auc(&outcomes, class),
         Objective::Accuracy => calculate_accuracy(threshold, &outcomes, class),
         Objective::Cost => calculate_cost(threshold, &outcomes, class),
     };
@@ -321,7 +321,7 @@ fn accuracy_threshold(outcomes: &[(f32, Outcome)], class: Class) -> Threshold {
 mod test {
     use crate::data::outcome::Class;
     use crate::data::Outcome;
-    use crate::exec::score::Objective::{Accuracy, Cost, AUC};
+    use crate::exec::score::Objective::{Accuracy, Auc, Cost};
     use crate::exec::score::{
         accuracy_threshold, auc_threshold, calculate_accuracy, calculate_auc, calculate_cost,
         cost_threshold, Score, Threshold,
@@ -339,7 +339,7 @@ mod test {
             threshold: Threshold::new(1.0),
         });
         test_serialization(Score {
-            objective: AUC,
+            objective: Auc,
             class: Class::from(false),
             value: 1.0,
             threshold: Threshold::new(0.0),
@@ -355,7 +355,7 @@ mod test {
     #[test]
     fn cmp_incompatible_score() {
         let class = Class::new(0);
-        let s1 = Score { objective: AUC, class, value: 1.0, threshold: Threshold::new(0.0) };
+        let s1 = Score { objective: Auc, class, value: 1.0, threshold: Threshold::new(0.0) };
         let s2 = Score { objective: Cost, class, value: 2.0, threshold: Threshold::new(0.0) };
         assert_eq!(s1.partial_cmp(&s2), None);
         assert_eq!(s1 > s2, false);
@@ -366,8 +366,8 @@ mod test {
     #[test]
     fn cmp_close_score_small() {
         let class = Class::new(0);
-        let s1 = Score { objective: AUC, class, value: 0.7000, threshold: Threshold::new(0.0) };
-        let s2 = Score { objective: AUC, class, value: 0.7005, threshold: Threshold::new(0.0) };
+        let s1 = Score { objective: Auc, class, value: 0.7000, threshold: Threshold::new(0.0) };
+        let s2 = Score { objective: Auc, class, value: 0.7005, threshold: Threshold::new(0.0) };
         assert_eq!(s1.partial_cmp(&s2).unwrap(), Equal);
         assert_eq!(s1, s2);
     }
@@ -376,9 +376,9 @@ mod test {
     fn cmp_close_score_big() {
         let class = Class::new(0);
         let s1 =
-            Score { objective: AUC, class, value: 1_000_000.0, threshold: Threshold::new(0.0) };
+            Score { objective: Auc, class, value: 1_000_000.0, threshold: Threshold::new(0.0) };
         let s2 =
-            Score { objective: AUC, class, value: 1_000_001.0, threshold: Threshold::new(0.0) };
+            Score { objective: Auc, class, value: 1_000_001.0, threshold: Threshold::new(0.0) };
         assert_eq!(s1.partial_cmp(&s2).unwrap(), Equal);
         assert_eq!(s1, s2);
     }

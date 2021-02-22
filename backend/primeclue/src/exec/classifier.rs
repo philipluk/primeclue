@@ -27,7 +27,7 @@ use crate::serialization::{Deserializable, Serializable, Serializator};
 use serde::Serialize;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ClassifierScore {
@@ -80,7 +80,7 @@ impl Classifier {
         Some(val / self.trees.len() as f32)
     }
 
-    pub fn save(&self, path: &PathBuf, name: &str) -> Result<usize, PrimeclueErr> {
+    pub fn save(&self, path: &Path, name: &str) -> Result<usize, PrimeclueErr> {
         let mut ser = Serializator::new();
         self.serialize(&mut ser);
         ser.save(path, format!("{}.ssd", name).as_str())
@@ -183,7 +183,7 @@ mod test {
     use crate::data::outcome::Class;
     use crate::data::InputShape;
     use crate::exec::classifier::Classifier;
-    use crate::exec::score::Objective::AUC;
+    use crate::exec::score::Objective::Auc;
     use crate::exec::score::{Score, Threshold};
     use crate::exec::scored_tree::ScoredTree;
     use crate::exec::training_group::TrainingGroup;
@@ -195,7 +195,7 @@ mod test {
     fn serialize_classifier() {
         for _ in 0..10 {
             let (d1, d2, _) = create_simple_data(100).shuffle().into_3_views_split();
-            let mut training_group = TrainingGroup::new(d1, d2, AUC, 5, &[]).unwrap();
+            let mut training_group = TrainingGroup::new(d1, d2, Auc, 5, &[]).unwrap();
             loop {
                 training_group.next_generation();
                 if let Ok(classifier) = training_group.classifier() {
@@ -222,7 +222,7 @@ mod test {
         let classes = HashMap::new();
         let r = Classifier::new(
             classes,
-            vec![ScoredTree::new(t, Score::new(AUC, Class::new(0), 0.9, Threshold::new(0.0)))],
+            vec![ScoredTree::new(t, Score::new(Auc, Class::new(0), 0.9, Threshold::new(0.0)))],
         );
         assert!(r.is_err());
     }
@@ -234,7 +234,7 @@ mod test {
             let t = Tree::new(&InputShape::new(1, 1), 3, &[], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
-                Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),
+                Score::new(Auc, Class::new(i), 0.9, Threshold::new(0.0)),
             ))
         }
         let mut classes = HashMap::new();
@@ -248,7 +248,7 @@ mod test {
             let t = Tree::new(&InputShape::new(1, 1), 3, &[], 0.5, 0.5);
             trees.push(ScoredTree::new(
                 t,
-                Score::new(AUC, Class::new(i), 0.9, Threshold::new(0.0)),
+                Score::new(Auc, Class::new(i), 0.9, Threshold::new(0.0)),
             ))
         }
         let mut classes = HashMap::new();

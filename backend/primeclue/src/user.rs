@@ -20,7 +20,7 @@
 use crate::error::PrimeclueErr;
 use std::fs;
 use std::fs::{DirEntry, ReadDir};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub const DELETE_IN_PROGRESS: &str = "delete_in_progress";
 pub const DATA_DIR: &str = "data";
@@ -58,7 +58,7 @@ impl Settings {
     }
 }
 
-fn create_dir(dir: &PathBuf) -> Result<(), String> {
+fn create_dir(dir: &Path) -> Result<(), String> {
     if !dir.exists() {
         fs::create_dir_all(&dir)
             .map_err(|e| format!("Unable to create directory {:?}: {}", dir, e))

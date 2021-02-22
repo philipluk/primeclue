@@ -22,7 +22,7 @@ use crate::serialization::serializable::Serializable;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub const PRIMECLUE_SPACE_SUBSTITUTE: &str = "PRIMECLUE_SPACE_SUBSTITUTE";
 pub const SERIALIZED_FILE_EXT: &str = ".ssd";
@@ -87,7 +87,7 @@ impl Serializator {
         }
     }
 
-    pub fn save(&self, dir: &PathBuf, name: &str) -> Result<usize, PrimeclueErr> {
+    pub fn save(&self, dir: &Path, name: &str) -> Result<usize, PrimeclueErr> {
         if !Path::new(&dir).exists() {
             return PrimeclueErr::result(format!("Directory {:?} does not exist", dir));
         }

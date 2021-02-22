@@ -26,8 +26,8 @@ use crate::serialization::deserializable::Deserializable;
 use crate::serialization::serializator::Serializator;
 use crate::serialization::Serializable;
 use rand::{prelude::SliceRandom, Rng};
-use std::{borrow::BorrowMut, ops::Deref, ops::Mul};
 use std::collections::HashSet;
+use std::{borrow::BorrowMut, ops::Deref, ops::Mul};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Weight(f32);
@@ -221,8 +221,10 @@ impl Weighted {
                 Node::SingleArgFunction(_, n) => {
                     node_queue.push(n.n.deref());
                 }
-                Node::MathConstant(_) => {},
-                Node::DataValue(_, c) | Node::StdDev(_, c) => { columns.insert(*c); }
+                Node::MathConstant(_) => {}
+                Node::DataValue(_, c) | Node::StdDev(_, c) => {
+                    columns.insert(*c);
+                }
             }
         }
         columns

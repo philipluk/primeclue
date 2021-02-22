@@ -20,7 +20,7 @@
 use primeclue::data::data_set::DataSet;
 use primeclue::data::outcome::Class;
 use primeclue::data::{Input, Outcome, Point};
-use primeclue::exec::score::Objective::AUC;
+use primeclue::exec::score::Objective::Auc;
 use primeclue::exec::tree::Tree;
 use primeclue::rand::GET_RNG;
 use rand::Rng;
@@ -39,7 +39,7 @@ fn main() {
         counter += 1;
         for _ in 0..1_000 {
             let tree = Tree::new(data.input_shape(), 30, &[], 0.5, 0.9);
-            if let Some(score) = tree.execute_for_score(&data, Class::new(0), AUC) {
+            if let Some(score) = tree.execute_for_score(&data, Class::new(0), Auc) {
                 if score.value() > best {
                     best = score.value();
                 }

@@ -176,7 +176,7 @@ pub struct ClassScore {
 #[cfg(test)]
 mod test {
     use crate::data::data_set::test::create_simple_data;
-    use crate::exec::score::Objective::AUC;
+    use crate::exec::score::Objective::Auc;
     use crate::exec::training_group::TrainingGroup;
 
     #[test]
@@ -184,7 +184,7 @@ mod test {
         let data = create_simple_data(100);
         let (training_data, verification_data, _) = data.shuffle().into_3_views_split();
         let mut training_group =
-            TrainingGroup::new(training_data, verification_data, AUC, 3, &Vec::new()).unwrap();
+            TrainingGroup::new(training_data, verification_data, Auc, 3, &Vec::new()).unwrap();
         training_group.next_generation();
         training_group.next_generation();
         training_group.next_generation();

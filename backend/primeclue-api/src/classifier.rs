@@ -141,7 +141,7 @@ struct TrainingStatus {
     classifier_score: ClassifierScore,
 }
 
-fn save(dst_dir: &PathBuf, training: &mut TrainingGroup) -> Result<usize, PrimeclueErr> {
+fn save(dst_dir: &Path, training: &mut TrainingGroup) -> Result<usize, PrimeclueErr> {
     let classifier = training.classifier()?;
     let mut s = Serializator::new();
     classifier.serialize(&mut s);
