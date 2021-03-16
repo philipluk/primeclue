@@ -61,6 +61,13 @@ impl Serializable for bool {
     }
 }
 
+impl<T: Serializable, U: Serializable> Serializable for (T, U) {
+    fn serialize(&self, s: &mut Serializator) {
+        s.add(&self.0);
+        s.add(&self.1);
+    }
+}
+
 impl<T: Serializable> Serializable for Option<T> {
     fn serialize(&self, s: &mut Serializator) {
         match self {

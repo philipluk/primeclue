@@ -138,7 +138,6 @@ impl ClassTraining {
 
     fn select_best(&mut self, data: &DataView) {
         let mut sorted_scores = self.sorted_by_score(data);
-        sorted_scores.reverse();
         self.assign_best_tree(&sorted_scores);
         self.remove_bad_groups(&mut sorted_scores);
     }
@@ -187,6 +186,7 @@ impl ClassTraining {
             }
         }
         scores.sort_unstable_by(|(_, s1), (_, s2)| s1.partial_cmp(s2).unwrap());
+        scores.reverse();
         scores
     }
 }

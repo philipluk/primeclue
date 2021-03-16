@@ -211,6 +211,15 @@ pub mod test {
     }
 
     #[test]
+    fn test_tuple() {
+        let mut m = HashMap::new();
+        m.insert(0usize, 0.0);
+        m.insert(1usize, 1.0);
+        let t = (vec!["one".to_string(), "two".to_string(), "free".to_string()], m);
+        test_serialization(t);
+    }
+
+    #[test]
     fn test_enough_tokens() {
         let t = Test { s: "Some text".to_string(), n: 42 };
         let mut s = Serializator::new();

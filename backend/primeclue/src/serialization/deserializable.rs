@@ -79,6 +79,17 @@ impl<T: Deserializable> Deserializable for Option<T> {
     }
 }
 
+impl<T: Deserializable, U: Deserializable> Deserializable for (T, U) {
+    fn deserialize(s: &mut Serializator) -> Result<Self, String>
+    where
+        Self: Sized,
+    {
+        let first = T::deserialize(s)?;
+        let second = U::deserialize(s)?;
+        Ok((first, second))
+    }
+}
+
 impl<T: Deserializable> Deserializable for Vec<T> {
     fn deserialize(s: &mut Serializator) -> Result<Self, String> {
         let len = usize::deserialize(s)?;
