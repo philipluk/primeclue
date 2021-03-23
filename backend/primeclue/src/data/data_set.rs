@@ -82,15 +82,6 @@ pub struct DataView {
 }
 
 impl DataView {
-    pub fn add_column(&mut self, column: Vec<f32>) -> Result<(), PrimeclueErr> {
-        if self.cells.input_shape().rows() > 1 {
-            PrimeclueErr::result("Unable to add column to multi-rows data".to_string())
-        } else {
-            self.cells.add_last(column);
-            Ok(())
-        }
-    }
-
     pub fn random_guess_cost(&self) -> f32 {
         let count = 1_000;
         let mut sum = 0.0;
@@ -407,7 +398,7 @@ impl Deserializable for DataSet {
 pub(crate) mod test {
     use crate::data::data_set::{DataSet, Rewards};
     use crate::data::outcome::Class;
-    use crate::data::{Input, InputShape, Outcome, Point};
+    use crate::data::{Input, Outcome, Point};
     use crate::rand::GET_RNG;
     use crate::serialization::serializator::test::test_serialization;
     use rand::Rng;
@@ -417,38 +408,6 @@ pub(crate) mod test {
     fn serialize() {
         let data = create_multiclass_data();
         test_serialization(data);
-    }
-
-    #[test]
-    fn test_add_column() {
-        let mut classes = HashMap::new();
-        classes.insert(Class::new(0), "false".to_string());
-        classes.insert(Class::new(1), "true".to_string());
-        let mut data = DataSet::new(classes);
-        data.add_data_point(Point::new(
-            Input::from_vector(vec![vec![1.0, 2.0]]).unwrap(),
-            Outcome::new(Class::new(0), 1.0, -1.0),
-        ))
-        .unwrap();
-        data.add_data_point(Point::new(
-            Input::from_vector(vec![vec![10.0, 20.0]]).unwrap(),
-            Outcome::new(Class::new(0), 1.0, -1.0),
-        ))
-        .unwrap();
-        data.add_data_point(Point::new(
-            Input::from_vector(vec![vec![100.0, 200.0]]).unwrap(),
-            Outcome::new(Class::new(0), 1.0, -1.0),
-        ))
-        .unwrap();
-        let mut view = data.into_view();
-        assert_eq!(view.input_shape(), &InputShape::new(1, 2));
-        assert_eq!(view.cells.get(0, 0), &[1.0, 10.0, 100.0]);
-        assert_eq!(view.cells.get(0, 1), &[2.0, 20.0, 200.0]);
-        view.add_column(vec![3.0, 30.0, 300.0]).unwrap();
-        assert_eq!(view.input_shape(), &InputShape::new(1, 3));
-        assert_eq!(view.cells.get(0, 0), &[1.0, 10.0, 100.0]);
-        assert_eq!(view.cells.get(0, 1), &[2.0, 20.0, 200.0]);
-        assert_eq!(view.cells.get(0, 2), &[3.0, 30.0, 300.0]);
     }
 
     #[test]

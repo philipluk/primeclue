@@ -19,7 +19,7 @@
 
 use crate::data::data_set::DataView;
 use crate::data::outcome::{sort_guesses, Class};
-use crate::data::InputShape;
+use crate::data::{Input, InputShape};
 use crate::exec::functions::DoubleArgFunction;
 use crate::exec::node::{Node, Weighted};
 use crate::exec::score::{calc_score, Objective, Score};
@@ -147,6 +147,10 @@ impl Tree {
 
     pub(crate) fn execute(&self, data: &DataView) -> Vec<f32> {
         self.node.execute(data.cells())
+    }
+
+    pub fn execute_input(&self, input: &Input) -> f32 {
+        self.node.execute(&input.to_view())[0]
     }
 }
 

@@ -48,12 +48,6 @@ impl<T> Default for Data<T> {
 }
 
 impl<T> Data<T> {
-    pub fn add_last(&mut self, value: T) {
-        self.data.insert(self.data.len(), value);
-        self.input_shape.columns += 1;
-        self.input_shape.rows = 1; // TODO wtf?
-    }
-
     #[must_use]
     pub fn new() -> Data<T> {
         Data { input_shape: InputShape::new(0, 0), data: Vec::new() }

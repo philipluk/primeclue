@@ -43,7 +43,7 @@ impl Input {
 
         for (id, row) in data.into_iter().enumerate() {
             input_data.add_row(row).map_err(|e| {
-                PrimeclueErr::from(format!("Unable to import row {}: {} ", id + 1, e))
+                PrimeclueErr::from(format!("Unable to create input row {}: {} ", id + 1, e))
             })?;
         }
         Ok(input_data)
@@ -67,6 +67,19 @@ impl Input {
     pub fn row(&self, r: usize) -> Vec<f32> {
         self.data.row(r).into_iter().copied().collect()
     }
+
+    #[must_use]
+    pub fn to_view(&self) -> Data<Vec<f32>> {
+        let mut data = Data::new();
+        for row in 0..self.input_shape().rows() {
+            let mut vec = vec![];
+            for col in 0..self.input_shape().columns() {
+                vec.push(vec![self.get(row, col)])
+            }
+            data.add_row(vec).unwrap();
+        }
+        data
+    }
 }
 
 impl Serializable for Input {
@@ -88,5 +101,38 @@ impl Deserializable for Input {
             id.add_row(row).map_err(|e| e.to_string())?;
         }
         Ok(id)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::data::Input;
+
+    #[test]
+    fn test_input_to_view_single_row() {
+        let vec = vec![vec![1.0, 2.0, 3.0]];
+        let input = Input::from_vector(vec).unwrap();
+        let view = input.to_view();
+        assert_eq!(view.get(0, 0), &vec![1.0]);
+        assert_eq!(view.get(0, 1), &vec![2.0]);
+        assert_eq!(view.get(0, 2), &vec![3.0]);
+    }
+
+    #[test]
+    fn test_input_to_view_many_rows() {
+        let vec = vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0], vec![7.0, 8.0, 9.0]];
+        let input = Input::from_vector(vec).unwrap();
+        let view = input.to_view();
+        assert_eq!(view.get(0, 0), &vec![1.0]);
+        assert_eq!(view.get(0, 1), &vec![2.0]);
+        assert_eq!(view.get(0, 2), &vec![3.0]);
+
+        assert_eq!(view.get(1, 0), &vec![4.0]);
+        assert_eq!(view.get(1, 1), &vec![5.0]);
+        assert_eq!(view.get(1, 2), &vec![6.0]);
+
+        assert_eq!(view.get(2, 0), &vec![7.0]);
+        assert_eq!(view.get(2, 1), &vec![8.0]);
+        assert_eq!(view.get(2, 2), &vec![9.0]);
     }
 }

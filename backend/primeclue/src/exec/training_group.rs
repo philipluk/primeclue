@@ -23,6 +23,7 @@ use crate::error::PrimeclueErr;
 use crate::exec::class_training::ClassTraining;
 use crate::exec::classifier::Classifier;
 use crate::exec::score::{Objective, Score};
+use crate::exec::scored_tree::ScoredTree;
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde::Serialize;
 use std::mem::replace;
@@ -139,6 +140,11 @@ impl TrainingGroup {
         Some(Stats { generation: self.generation, node_count, training_score })
     }
 
+    pub fn get_tree(&self, class: &Class) -> Option<&ScoredTree> {
+        let class_training = self.classes.iter().find(|&c| c.class() == class)?;
+        class_training.best_tree()
+    }
+
     /// Get [`Classifier`] after training. [`Classifier`] can later be used for
     /// classification on unseen data.
     pub fn classifier(&self) -> Result<Classifier, PrimeclueErr> {
@@ -176,6 +182,7 @@ pub struct ClassScore {
 #[cfg(test)]
 mod test {
     use crate::data::data_set::test::create_simple_data;
+    use crate::data::outcome::Class;
     use crate::exec::score::Objective::Auc;
     use crate::exec::training_group::TrainingGroup;
 
@@ -189,5 +196,20 @@ mod test {
         training_group.next_generation();
         training_group.next_generation();
         assert_eq!(training_group.generation(), 3)
+    }
+
+    #[test]
+    fn test_get_tree() {
+        let (training_data, verification_data) = create_simple_data(1_000).into_2_views_split();
+        let mut training_group =
+            TrainingGroup::new(training_data, verification_data, Auc, 10, &Vec::new()).unwrap();
+
+        for _ in 0..1_000 {
+            training_group.next_generation();
+            if let Some(_) = training_group.get_tree(&Class::new(1)) {
+                return;
+            }
+        }
+        panic!("get_tree(class) failed")
     }
 }
